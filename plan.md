@@ -312,20 +312,20 @@ uv run python -m backend.main
 
 ---
 
-### Phase 3: Frontend Modularization
+### Phase 3: Frontend Modularization ✓ COMPLETED
 **Goal**: POC code refactored into modules with API integration
 
 **Tasks**:
-1. Set up Vite project
-2. Extract POC code into ES6 modules:
+1. ✓ Set up Vite project
+2. ✓ Extract POC code into ES6 modules:
    - Scene setup → `viewer/scene.js`
    - BoundingBox3D → `viewer/BoundingBox3D.js`
    - Interactions → `viewer/interactions/`
    - Manager → `managers/BoundingBoxManager.js`
-3. Create API client (`api/client.js`)
-4. Replace file upload with API image loading
-5. Implement auto-save on annotation changes
-6. Test all POC features still work
+3. ✓ Create API client (`api/client.js`)
+4. ✓ Replace file upload with API image loading
+5. ✓ Implement auto-save on annotation changes
+6. ✓ Test all POC features still work
 
 **Critical files**:
 - `frontend/src/main.js` - Entry point
@@ -334,7 +334,20 @@ uv run python -m backend.main
 - `frontend/src/managers/BoundingBoxManager.js` - Box lifecycle + server sync
 - `frontend/package.json` - Dependencies (Vite, Three.js r170)
 
-**Verification**: Can load image from server, create box, see it saved to DB
+**Verification**: ✓ Can load image from server, create box, see it saved to DB
+
+**Setup**:
+```bash
+# Install frontend dependencies
+cd frontend
+npm install
+
+# Start dev server
+npm run dev
+
+# Build for production
+npm run build
+```
 
 ---
 

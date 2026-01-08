@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SphereMark - Panoramic Image Labeling</title>
+        <link rel="stylesheet" href="/styles/main.css" />
+    </head>
+    <body>
+        <div id="canvas-container"></div>
+
+        <div id="image-browser">
+            <div class="browser-header">
+                <h1>SphereMark</h1>
+                <p>Select a panoramic image to label</p>
+                <div class="browser-actions">
+                    <button id="scan-button" class="btn btn-primary">
+                        <span>🔄</span> Scan for Images
+                    </button>
+                </div>
+            </div>
+
+            <div id="image-grid"></div>
+
+            <div id="loading-state" class="hidden">
+                <p>Loading images...</p>
+            </div>
+
+            <div id="scanning-state" class="hidden">
+                <p>Scanning for images...</p>
+            </div>
+
+            <div id="error-state" class="hidden">
+                <p>Failed to load images</p>
+                <button id="retry-button" class="btn btn-primary">Retry</button>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div id="toolbar" class="hidden">
+            <button
+                id="mode-view"
+                class="mode-button active"
+                title="View Mode (ESC)"
+            >
+                <span>👁️</span>
+            </button>
+            <button id="mode-draw" class="mode-button" title="Draw Mode (D)">
+                <span>✏️</span>
+            </button>
+            <button id="mode-edit" class="mode-button" title="Edit Mode (E)">
+                <span>✋</span>
+            </button>
+
+            <div class="toolbar-divider"></div>
+
+            <button id="back-to-browser" class="icon-button" title="Back to Image Browser">
+                <span>⬅️</span>
+            </button>
+
+            <button id="toggle-panel" class="icon-button" title="Toggle Panel">
+                <span>📋</span>
+            </button>
+
+            <button id="export-boxes" class="icon-button" title="Export Boxes">
+                <span>💾</span>
+            </button>
+        </div>
+
+        <!-- Side Panel -->
+        <div id="side-panel" class="hidden">
+            <div class="panel-header">
+                <h2>Bounding Boxes</h2>
+                <button id="close-panel" class="icon-button">&times;</button>
+            </div>
+
+            <div class="panel-content">
+                <div id="box-list"></div>
+                <div id="empty-state">
+                    <p>No bounding boxes yet</p>
+                    <p style="font-size: 0.9em; margin-top: 0.5rem">
+                        Switch to Draw mode to create one
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mode Indicator -->
+        <div id="mode-indicator" class="hidden">
+            <span id="mode-text">View Mode</span>
+            <span id="mode-hint">Use OrbitControls to explore</span>
+        </div>
+
+        <!-- Save Status Indicator -->
+        <div id="save-status" class="hidden">
+            <span id="save-text">Saved</span>
+        </div>
+
+        <script type="module" src="/src/main.js"></script>
+    </body>
+</html>

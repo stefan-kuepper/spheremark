@@ -25,7 +25,15 @@ A web-based tool for annotating panoramic images with spherical bounding boxes. 
 - YOLO format export
 - Coordinate conversion tests verified
 
-**Phase 3: Frontend Modularization** - PENDING
+**Phase 3: Frontend Modularization** ✓ COMPLETED
+- Vite project setup with ES6 modules
+- Three.js viewer with scene management
+- API client for backend communication
+- Bounding box manager with auto-save
+- Image browser UI
+- Draw and edit interactions
+- Modular architecture (viewer, interactions, managers)
+
 **Phase 4: New UI Features** - PENDING
 **Phase 5: Testing & Deployment** - PENDING
 
@@ -64,7 +72,9 @@ images:
   remote_path: "/path/to/your/panoramas"  # Update this path
 ```
 
-### Running the Server
+### Running the Application
+
+**Backend Server:**
 
 ```bash
 uv run python -m backend.main
@@ -73,6 +83,28 @@ uv run python -m backend.main
 The server will start on `http://0.0.0.0:8000`
 
 Access the API documentation at `http://localhost:8000/docs`
+
+**Frontend (Phase 3+):**
+
+1. Install frontend dependencies:
+```bash
+cd frontend
+npm install
+```
+
+2. Start development server:
+```bash
+npm run dev
+```
+
+The frontend will start on `http://localhost:3000`
+
+3. Build for production:
+```bash
+npm run build
+```
+
+The built files will be in `frontend/dist/`
 
 ## API Endpoints
 
@@ -171,6 +203,38 @@ uv run python test_coordinates.py
 
 Open `http://localhost:8000/docs` in your browser to test all endpoints interactively.
 
+### Phase 3: Frontend Usage
+
+1. **Start the backend server** (see above)
+
+2. **Scan for images:**
+```bash
+curl -X POST http://localhost:8000/api/images/scan
+```
+
+3. **Start the frontend:**
+```bash
+cd frontend
+npm run dev
+```
+
+4. **Open the application:**
+Navigate to `http://localhost:3000` in your browser
+
+5. **Workflow:**
+   - Select an image from the browser
+   - Use toolbar to switch modes:
+     - **View Mode (👁️)**: Navigate the panorama
+     - **Draw Mode (✏️)**: Click and drag to create bounding boxes
+     - **Edit Mode (✋)**: Select and resize boxes
+   - Keyboard shortcuts:
+     - `ESC`: Switch to View mode
+     - `D`: Switch to Draw mode
+     - `E`: Switch to Edit mode
+     - `Delete/Backspace`: Delete selected box
+   - Annotations auto-save to the database
+   - Use side panel to view, focus, and delete boxes
+
 ## Project Structure
 
 ```
@@ -194,6 +258,24 @@ spheremark/
 │   ├── annotations.db                # SQLite database (created at runtime)
 │   └── thumbnails/                   # Generated thumbnails
 ├── frontend/                         # Frontend (Phase 3+)
+│   ├── src/
+│   │   ├── main.js                   # Application entry point
+│   │   ├── api/
+│   │   │   └── client.js             # Backend API client
+│   │   ├── viewer/
+│   │   │   ├── scene.js              # Three.js scene setup
+│   │   │   ├── BoundingBox3D.js      # Box rendering
+│   │   │   ├── BoxHandle.js          # Resize handles
+│   │   │   └── interactions/
+│   │   │       ├── DrawInteraction.js    # Box creation
+│   │   │       └── ResizeInteraction.js  # Box editing
+│   │   └── managers/
+│   │       └── BoundingBoxManager.js # Box lifecycle + server sync
+│   ├── styles/
+│   │   └── main.css                  # Application styles
+│   ├── index.html                    # HTML entry point
+│   ├── package.json                  # Node dependencies
+│   └── vite.config.js                # Vite configuration
 ├── config.yaml                       # Configuration
 ├── pyproject.toml                    # Python project metadata & dependencies
 ├── test_coordinates.py               # Coordinate conversion tests (Phase 2)

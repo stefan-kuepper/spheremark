@@ -1,4 +1,4 @@
-# Panoramic Image Labeling Tool
+# SphereMark
 
 A web-based tool for annotating panoramic images with spherical bounding boxes. Built with FastAPI (backend) and Three.js (frontend).
 
@@ -44,7 +44,7 @@ A web-based tool for annotating panoramic images with spherical bounding boxes. 
 
 1. Clone or navigate to the project directory:
 ```bash
-cd /home/stefan/Projekte/pano_labeler
+cd /home/stefan/Projekte/spheremark
 ```
 
 2. Install uv (if not already installed):
@@ -174,7 +174,7 @@ Open `http://localhost:8000/docs` in your browser to test all endpoints interact
 ## Project Structure
 
 ```
-pano_labeler/
+spheremark/
 ├── backend/
 │   ├── main.py                       # FastAPI application
 │   ├── config.py                     # Configuration loader

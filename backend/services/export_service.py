@@ -42,11 +42,12 @@ class ExportService:
         # Build COCO structure
         coco_output = {
             "info": {
-                "description": "Panoramic Image Annotations",
+                "description": "SphereMark - Panoramic Image Annotations",
                 "version": "1.0",
                 "year": datetime.now().year,
                 "date_created": datetime.now().isoformat(),
-                "coordinate_system": "spherical"
+                "coordinate_system": "spherical",
+                "contributor": "SphereMark"
             },
             "images": [],
             "annotations": [],

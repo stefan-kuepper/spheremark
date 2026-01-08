@@ -23,8 +23,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Panoramic Image Labeling API",
-    description="Backend API for panoramic image annotation with spherical bounding boxes",
+    title="SphereMark API",
+    description="Backend API for SphereMark - Annotate panoramic images with spherical bounding boxes",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -48,7 +48,7 @@ app.include_router(export.router)
 async def root():
     """Root endpoint."""
     return {
-        "message": "Panoramic Image Labeling API",
+        "message": "SphereMark API",
         "version": "1.0.0",
         "docs": "/docs"
     }

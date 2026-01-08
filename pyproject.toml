@@ -1,7 +1,7 @@
 [project]
-name = "pano-labeler"
+name = "spheremark"
 version = "1.0.0"
-description = "Web-based tool for annotating panoramic images with spherical bounding boxes"
+description = "SphereMark - Web-based tool for annotating panoramic images with spherical bounding boxes"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

@@ -1,4 +1,4 @@
-# Panoramic Image Labeling Tool - Implementation Plan
+# SphereMark - Implementation Plan
 
 ## Overview
 Transform the POC at `../treejs_pano_test` into a production web-based labeling tool with:
@@ -32,7 +32,7 @@ Browser (Three.js) ←→ FastAPI Server ←→ SQLite DB
 ## Directory Structure
 
 ```
-/home/stefan/Projekte/pano_labeler/
+/home/stefan/Projekte/spheremark/
 ├── backend/
 │   ├── main.py                          # FastAPI entry, CORS, routes
 │   ├── config.py                        # Config management

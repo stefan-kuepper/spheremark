@@ -6,7 +6,7 @@ import { PanoramaScene } from './viewer/scene.js';
 import { BoundingBoxManager } from './managers/BoundingBoxManager.js';
 import { DrawInteraction } from './viewer/interactions/DrawInteraction.js';
 import { ResizeInteraction } from './viewer/interactions/ResizeInteraction.js';
-import { images } from './api/client.js';
+import { images, exports } from './api/client.js';
 
 // Interaction modes
 const InteractionMode = {
@@ -335,7 +335,19 @@ function renderSidePanel(boxes, selectedId) {
         <div class="box-item ${box.id === selectedId ? "selected" : ""}" data-box-id="${box.id}">
             <div class="box-info">
                 <strong>Box #${box.id}</strong>
-                ${box.label ? `<div>Label: ${box.label}</div>` : ''}
+                <div class="label-container">
+                    <span class="label-text ${!box.label ? 'label-empty' : ''}">
+                        ${box.label ? `Label: ${box.label}` : 'Click to add label'}
+                    </span>
+                    <input 
+                        type="text" 
+                        class="label-input hidden" 
+                        value="${box.label || ''}" 
+                        placeholder="Enter label"
+                        data-box-id="${box.id}"
+                        list="label-suggestions"
+                    />
+                </div>
             </div>
 
             <div class="box-info">
@@ -351,6 +363,9 @@ function renderSidePanel(boxes, selectedId) {
             <div class="box-actions">
                 <button class="btn btn-sm btn-primary focus-btn" data-box-id="${box.id}">
                     Focus
+                </button>
+                <button class="btn btn-sm btn-secondary edit-label-btn" data-box-id="${box.id}">
+                    Edit Label
                 </button>
                 <button class="btn btn-sm btn-danger delete-btn" data-box-id="${box.id}">
                     Delete
@@ -385,6 +400,139 @@ function renderSidePanel(boxes, selectedId) {
             deleteBox(btn.dataset.boxId);
         });
     });
+
+    // Label editing
+    document.querySelectorAll(".edit-label-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const boxId = btn.dataset.boxId;
+            startLabelEditing(boxId);
+        });
+    });
+
+    document.querySelectorAll(".label-text").forEach((label) => {
+        label.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const boxItem = label.closest(".box-item");
+            if (boxItem) {
+                const boxId = boxItem.dataset.boxId;
+                startLabelEditing(boxId);
+            }
+        });
+    });
+
+    document.querySelectorAll(".label-input").forEach((input) => {
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                finishLabelEditing(input);
+            } else if (e.key === "Escape") {
+                cancelLabelEditing(input);
+            }
+        });
+
+        input.addEventListener("blur", () => {
+            finishLabelEditing(input);
+        });
+    });
+    
+    // Update label suggestions
+    updateLabelSuggestions();
+}
+
+/**
+ * Start editing a label
+ */
+function startLabelEditing(boxId) {
+    const boxItem = document.querySelector(`.box-item[data-box-id="${boxId}"]`);
+    if (!boxItem) return;
+
+    const labelText = boxItem.querySelector(".label-text");
+    const labelInput = boxItem.querySelector(".label-input");
+
+    if (labelText && labelInput) {
+        labelText.classList.add("hidden");
+        labelInput.classList.remove("hidden");
+        labelInput.focus();
+        labelInput.select();
+    }
+}
+
+/**
+ * Finish editing a label
+ */
+function finishLabelEditing(input) {
+    const boxId = input.dataset.boxId;
+    const newLabel = input.value.trim();
+    const labelText = input.previousElementSibling;
+
+    input.classList.add("hidden");
+    labelText.classList.remove("hidden");
+
+    if (boxManager) {
+        boxManager.updateBoxLabel(boxId, newLabel);
+    }
+}
+
+/**
+ * Cancel label editing
+ */
+function cancelLabelEditing(input) {
+    const boxId = input.dataset.boxId;
+    const box = boxManager?.boxes.find(b => b.id == boxId);
+    const labelText = input.previousElementSibling;
+    
+    input.classList.add("hidden");
+    labelText.classList.remove("hidden");
+    
+    // Restore original label
+    if (box) {
+        input.value = box.label || '';
+    }
+}
+
+/**
+ * Get all unique labels from boxes
+ */
+function getUniqueLabels() {
+    if (!boxManager) return [];
+    
+    const labels = new Set();
+    boxManager.boxes.forEach(box => {
+        if (box.label && box.label.trim()) {
+            labels.add(box.label.trim());
+        }
+    });
+    
+    return Array.from(labels);
+}
+
+/**
+ * Update label suggestions datalist
+ */
+function updateLabelSuggestions() {
+    const datalist = document.getElementById('label-suggestions');
+    if (!datalist) return;
+    
+    // Get unique labels from boxes
+    const uniqueLabels = getUniqueLabels();
+    
+    // Add predefined labels
+    const predefinedLabels = [
+        'traffic_sign', 'person', 'vehicle', 'building', 'tree',
+        'street_light', 'sign', 'car', 'bicycle', 'motorcycle'
+    ];
+    
+    const allLabels = new Set([...predefinedLabels, ...uniqueLabels]);
+    
+    // Clear existing options (except predefined ones added in HTML)
+    datalist.innerHTML = '';
+    
+    // Add all labels as options
+    allLabels.forEach(label => {
+        const option = document.createElement('option');
+        option.value = label;
+        datalist.appendChild(option);
+    });
 }
 
 /**
@@ -409,10 +557,144 @@ function deleteBox(boxId) {
 }
 
 /**
- * Export boxes (placeholder)
+ * Export boxes
  */
 function exportBoxes() {
-    alert('Export functionality will be implemented in Phase 4');
+    console.log('Export button clicked, showing dialog');
+    showExportDialog();
+}
+
+/**
+ * Show export dialog
+ */
+function showExportDialog() {
+    console.log('showExportDialog called');
+    const dialog = document.getElementById('export-dialog');
+    console.log('Dialog element:', dialog);
+    console.log('Dialog classList before:', dialog.classList);
+    dialog.classList.remove('hidden');
+    console.log('Dialog classList after:', dialog.classList);
+    
+    // Update preview
+    updateExportPreview();
+    
+    // Focus the dialog
+    dialog.querySelector('.dialog-close').focus();
+}
+
+/**
+ * Hide export dialog
+ */
+function hideExportDialog() {
+    const dialog = document.getElementById('export-dialog');
+    dialog.classList.add('hidden');
+}
+
+/**
+ * Update export preview based on selected options
+ */
+async function updateExportPreview() {
+    const format = document.querySelector('input[name="format"]:checked').value;
+    const scope = document.querySelector('input[name="scope"]:checked').value;
+    const previewElement = document.getElementById('export-preview-content');
+    
+    previewElement.textContent = 'Loading preview...';
+    
+    try {
+        let previewData;
+        
+        if (scope === 'current' && currentImageId) {
+            // Export current image
+            if (format === 'coco') {
+                const data = await exports.exportCocoImage(currentImageId);
+                previewData = data;
+            } else {
+                const data = await exports.exportYoloImage(currentImageId);
+                previewData = data;
+            }
+        } else {
+            // Export all images
+            if (format === 'coco') {
+                const data = await exports.exportCoco();
+                previewData = data;
+            } else {
+                const data = await exports.exportYolo();
+                previewData = data;
+            }
+        }
+        
+        // Format the preview
+        previewElement.textContent = JSON.stringify(previewData, null, 2);
+    } catch (error) {
+        console.error('Failed to load export preview:', error);
+        previewElement.textContent = `Error loading preview: ${error.message}`;
+    }
+}
+
+/**
+ * Download export
+ */
+async function downloadExport() {
+    const format = document.querySelector('input[name="format"]:checked').value;
+    const scope = document.querySelector('input[name="scope"]:checked').value;
+    
+    try {
+        if (scope === 'current' && currentImageId) {
+            // Download current image
+            if (format === 'coco') {
+                const data = await exports.exportCocoImage(currentImageId);
+                downloadJSON(data, `annotations_image_${currentImageId}.json`);
+            } else {
+                // For YOLO, download .txt file
+                const url = exports.getYoloTxtUrl(currentImageId);
+                window.open(url, '_blank');
+            }
+        } else {
+            // Download all images
+            if (format === 'coco') {
+                const data = await exports.exportCoco();
+                downloadJSON(data, 'annotations_all.json');
+            } else {
+                // For YOLO, we need to handle multiple files
+                alert('YOLO export for all images creates multiple files. Please use the API endpoint directly or export individual images.');
+            }
+        }
+        
+        hideExportDialog();
+    } catch (error) {
+        console.error('Export failed:', error);
+        alert(`Export failed: ${error.message}`);
+    }
+}
+
+/**
+ * Download JSON data as file
+ */
+function downloadJSON(data, filename) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * Copy export to clipboard
+ */
+async function copyExportToClipboard() {
+    const previewElement = document.getElementById('export-preview-content');
+    
+    try {
+        await navigator.clipboard.writeText(previewElement.textContent);
+        alert('Export data copied to clipboard!');
+    } catch (error) {
+        console.error('Failed to copy to clipboard:', error);
+        alert('Failed to copy to clipboard. Please try again.');
+    }
 }
 
 /**
@@ -511,7 +793,11 @@ function onKeyDown(event) {
 
         case "e":
         case "E":
-            if (!event.ctrlKey && !event.metaKey && boxManager) {
+            if (event.ctrlKey || event.metaKey) {
+                // Ctrl+E or Cmd+E for export
+                event.preventDefault();
+                showExportDialog();
+            } else if (!event.ctrlKey && !event.metaKey && boxManager) {
                 setMode(InteractionMode.EDIT);
             }
             break;
@@ -520,6 +806,13 @@ function onKeyDown(event) {
         case "Backspace":
             if (boxManager && boxManager.selectedBoxId !== null) {
                 deleteBox(boxManager.selectedBoxId);
+            }
+            break;
+
+        case "l":
+        case "L":
+            if (!event.ctrlKey && !event.metaKey && boxManager && boxManager.selectedBoxId !== null) {
+                startLabelEditing(boxManager.selectedBoxId);
             }
             break;
     }
@@ -564,6 +857,30 @@ function setupEventListeners() {
 
     document.getElementById("scan-button").addEventListener("click", () => {
         scanForImages();
+    });
+
+    // Export dialog events
+    document.querySelector(".dialog-close").addEventListener("click", () => {
+        hideExportDialog();
+    });
+
+    document.getElementById("export-cancel").addEventListener("click", () => {
+        hideExportDialog();
+    });
+
+    document.getElementById("export-download").addEventListener("click", () => {
+        downloadExport();
+    });
+
+    document.getElementById("export-copy").addEventListener("click", () => {
+        copyExportToClipboard();
+    });
+
+    // Radio button change events for live preview
+    document.querySelectorAll('input[name="format"], input[name="scope"]').forEach(input => {
+        input.addEventListener("change", () => {
+            updateExportPreview();
+        });
     });
 
     // Keyboard events

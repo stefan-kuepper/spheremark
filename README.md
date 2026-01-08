@@ -34,7 +34,7 @@ A web-based tool for annotating panoramic images with spherical bounding boxes. 
 - Draw and edit interactions
 - Modular architecture (viewer, interactions, managers)
 
-**Phase 4: New UI Features** - PENDING
+**Phase 4: New UI Features** ✓ COMPLETED
 **Phase 5: Testing & Deployment** - PENDING
 
 ## Setup

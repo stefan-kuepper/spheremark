@@ -96,6 +96,76 @@
             <span id="save-text">Saved</span>
         </div>
 
+        <!-- Label suggestions datalist -->
+        <datalist id="label-suggestions">
+            <option value="traffic_sign">
+            <option value="person">
+            <option value="vehicle">
+            <option value="building">
+            <option value="tree">
+            <option value="street_light">
+            <option value="sign">
+            <option value="car">
+            <option value="bicycle">
+            <option value="motorcycle">
+        </datalist>
+
+        <!-- Export Dialog -->
+        <div id="export-dialog" class="dialog hidden">
+            <div class="dialog-overlay"></div>
+            <div class="dialog-content">
+                <div class="dialog-header">
+                    <h2>Export Annotations</h2>
+                    <button class="dialog-close">&times;</button>
+                </div>
+                <div class="dialog-body">
+                    <div class="export-options">
+                        <div class="form-group">
+                            <label>Export Format</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="format" value="coco" checked>
+                                    <span>COCO Format (JSON)</span>
+                                    <p class="radio-description">Standard COCO format with spherical coordinates</p>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="format" value="yolo">
+                                    <span>YOLO Format (TXT)</span>
+                                    <p class="radio-description">YOLO format with spherical coordinates, one .txt file per image</p>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Scope</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="scope" value="current" checked>
+                                    <span>Current Image Only</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="scope" value="all">
+                                    <span>All Images</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Preview</label>
+                            <div class="export-preview">
+                                <pre id="export-preview-content">Select options to see preview...</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dialog-footer">
+                    <button id="export-cancel" class="btn btn-secondary">Cancel</button>
+                    <button id="export-download" class="btn btn-primary">Download</button>
+                    <button id="export-copy" class="btn btn-secondary">Copy to Clipboard</button>
+                </div>
+            </div>
+        </div>
+
         <script type="module" src="/src/main.js"></script>
     </body>
 </html>

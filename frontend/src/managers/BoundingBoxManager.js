@@ -211,6 +211,36 @@ export class BoundingBoxManager {
     }
 
     /**
+     * Update box label
+     */
+    async updateBoxLabel(boxId, label) {
+        const box = this.boxes.find((b) => b.id == boxId);
+        if (!box) return;
+
+        box.label = label;
+        this.updateUI();
+
+        // Save to server if it has a server ID
+        if (box.serverId) {
+            try {
+                this.onSaveStatusChange('saving');
+                await annotations.update(box.serverId, {
+                    label: box.label,
+                    uv_min_u: box.uvMin.u,
+                    uv_min_v: box.uvMin.v,
+                    uv_max_u: box.uvMax.u,
+                    uv_max_v: box.uvMax.v,
+                    color: box.color,
+                });
+                this.onSaveStatusChange('saved');
+            } catch (error) {
+                console.error('Failed to update annotation label:', error);
+                this.onSaveStatusChange('error');
+            }
+        }
+    }
+
+    /**
      * Show resize handles for a box
      */
     showHandles(boxId) {

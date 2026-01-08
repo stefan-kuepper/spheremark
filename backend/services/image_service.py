@@ -7,6 +7,9 @@ from backend.database import get_db
 from backend.config import get_config
 from backend.models import ImageCreate, ImageResponse, ImageListResponse, ScanResult
 
+# Disable decompression bomb warning for large panoramic images
+Image.MAX_IMAGE_PIXELS = None
+
 
 class ImageService:
     """Service for managing panoramic images."""

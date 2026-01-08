@@ -18,7 +18,13 @@ A web-based tool for annotating panoramic images with spherical bounding boxes. 
 - Image scanning and thumbnail generation
 - REST API endpoints for images
 
-**Phase 2: Annotation Backend** - PENDING
+**Phase 2: Annotation Backend** ✓ COMPLETED
+- Full CRUD for annotations
+- UV ↔ spherical coordinate conversion
+- COCO format export with spherical coordinates
+- YOLO format export
+- Coordinate conversion tests verified
+
 **Phase 3: Frontend Modularization** - PENDING
 **Phase 4: New UI Features** - PENDING
 **Phase 5: Testing & Deployment** - PENDING
@@ -28,8 +34,11 @@ A web-based tool for annotating panoramic images with spherical bounding boxes. 
 ### Prerequisites
 
 - Python 3.10+
+- [uv](https://github.com/astral-sh/uv) - Fast Python package installer (10-100x faster than pip)
 - Node.js 18+ (for frontend, Phase 3+)
 - Access to panoramic images directory
+
+> **Why uv?** This project uses uv for Python package management because it's significantly faster than pip, handles virtual environments automatically, and provides better dependency resolution.
 
 ### Installation
 
@@ -38,15 +47,14 @@ A web-based tool for annotating panoramic images with spherical bounding boxes. 
 cd /home/stefan/Projekte/pano_labeler
 ```
 
-2. Create a virtual environment:
+2. Install uv (if not already installed):
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 3. Install dependencies:
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 4. Configure the application:
@@ -59,14 +67,14 @@ images:
 ### Running the Server
 
 ```bash
-python -m backend.main
+uv run python -m backend.main
 ```
 
 The server will start on `http://0.0.0.0:8000`
 
 Access the API documentation at `http://localhost:8000/docs`
 
-## API Endpoints (Phase 1)
+## API Endpoints
 
 ### Images
 
@@ -76,16 +84,36 @@ Access the API documentation at `http://localhost:8000/docs`
 - `GET /api/images/{id}/thumbnail` - Serve thumbnail
 - `POST /api/images/scan` - Scan remote directory for new images
 
+### Annotations (Phase 2)
+
+- `GET /api/images/{id}/annotations` - Get all annotations for an image
+- `POST /api/images/{id}/annotations` - Create annotation for an image
+- `GET /api/annotations/{id}` - Get specific annotation by ID
+- `PUT /api/annotations/{id}` - Update annotation
+- `DELETE /api/annotations/{id}` - Delete annotation
+- `GET /api/annotations` - Get all annotations (all images)
+
+### Export (Phase 2)
+
+- `GET /api/export/coco` - Export all annotations in COCO format
+- `GET /api/export/coco/{image_id}` - Export single image in COCO format
+- `GET /api/export/yolo` - Export all annotations in YOLO format
+- `GET /api/export/yolo/{image_id}` - Export single image in YOLO format
+- `GET /api/export/yolo/{image_id}/txt` - Download YOLO .txt file
+- `GET /api/export/yolo/classes.txt` - Download YOLO classes.txt
+
 ### Health
 
 - `GET /` - API information
 - `GET /health` - Health check
 
-## Testing Phase 1
+## Testing
+
+### Phase 1: Images
 
 1. Start the server:
 ```bash
-python -m backend.main
+uv run python -m backend.main
 ```
 
 2. Scan for images (replace with actual path in config.yaml):
@@ -103,30 +131,73 @@ curl http://localhost:8000/api/images
 curl http://localhost:8000/api/images/1/thumbnail --output thumb.jpg
 ```
 
-5. Access API documentation:
-Open `http://localhost:8000/docs` in your browser
+### Phase 2: Annotations & Export
+
+1. Create an annotation:
+```bash
+curl -X POST http://localhost:8000/api/images/1/annotations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "label": "traffic_sign",
+    "uv_min_u": 0.25,
+    "uv_min_v": 0.25,
+    "uv_max_u": 0.75,
+    "uv_max_v": 0.75,
+    "color": "#ff0000"
+  }'
+```
+
+2. Get annotations for an image:
+```bash
+curl http://localhost:8000/api/images/1/annotations
+```
+
+3. Export to COCO format:
+```bash
+curl http://localhost:8000/api/export/coco -o annotations.json
+```
+
+4. Export to YOLO format:
+```bash
+curl http://localhost:8000/api/export/yolo
+```
+
+5. Test coordinate conversions:
+```bash
+uv run python test_coordinates.py
+```
+
+### Interactive API Documentation
+
+Open `http://localhost:8000/docs` in your browser to test all endpoints interactively.
 
 ## Project Structure
 
 ```
 pano_labeler/
 ├── backend/
-│   ├── main.py              # FastAPI application
-│   ├── config.py            # Configuration loader
-│   ├── database.py          # SQLite database
-│   ├── models.py            # Pydantic models
+│   ├── main.py                       # FastAPI application
+│   ├── config.py                     # Configuration loader
+│   ├── database.py                   # SQLite database
+│   ├── models.py                     # Pydantic models
 │   ├── services/
-│   │   └── image_service.py # Image operations
+│   │   ├── image_service.py          # Image operations
+│   │   ├── annotation_service.py     # Annotation CRUD (Phase 2)
+│   │   └── export_service.py         # COCO/YOLO export (Phase 2)
 │   ├── routes/
-│   │   └── images.py        # Image endpoints
-│   └── utils/               # Utilities (Phase 2+)
+│   │   ├── images.py                 # Image endpoints
+│   │   ├── annotations.py            # Annotation endpoints (Phase 2)
+│   │   └── export.py                 # Export endpoints (Phase 2)
+│   └── utils/
+│       └── coordinates.py            # UV ↔ spherical conversion (Phase 2)
 ├── data/
-│   ├── annotations.db       # SQLite database (created at runtime)
-│   └── thumbnails/          # Generated thumbnails
-├── frontend/                # Frontend (Phase 3+)
-├── config.yaml              # Configuration
-├── requirements.txt         # Python dependencies
-└── README.md               # This file
+│   ├── annotations.db                # SQLite database (created at runtime)
+│   └── thumbnails/                   # Generated thumbnails
+├── frontend/                         # Frontend (Phase 3+)
+├── config.yaml                       # Configuration
+├── pyproject.toml                    # Python project metadata & dependencies
+├── test_coordinates.py               # Coordinate conversion tests (Phase 2)
+└── README.md                         # This file
 ```
 
 ## Database Schema

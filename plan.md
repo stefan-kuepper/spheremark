@@ -22,6 +22,7 @@ Browser (Three.js) ←→ FastAPI Server ←→ SQLite DB
 - **SQLite** - Annotation storage
 - **Pillow** - Image processing & thumbnails
 - **NumPy** - Coordinate transformations
+- **uv** - Fast Python package manager and runner
 
 ### Frontend
 - **Vite** - Build system
@@ -76,7 +77,7 @@ Browser (Three.js) ←→ FastAPI Server ←→ SQLite DB
 │   └── annotations.db
 │
 ├── config.yaml                          # Server configuration
-├── requirements.txt
+├── pyproject.toml                       # Python project & dependencies (uv)
 └── README.md
 ```
 
@@ -255,38 +256,49 @@ GET    /api/export/yolo/{image_id}    # Export single image
 
 ## Implementation Phases
 
-### Phase 1: Backend Foundation
+### Phase 1: Backend Foundation ✓ COMPLETED
 **Goal**: Working API serving images and thumbnails
 
 **Tasks**:
-1. Create project structure
-2. Set up FastAPI with CORS
-3. Implement database schema
-4. Create image service (scan directory, generate thumbnails)
-5. Implement image endpoints
-6. Test with sample panoramas from LAN
+1. ✓ Create project structure
+2. ✓ Set up FastAPI with CORS
+3. ✓ Implement database schema
+4. ✓ Create image service (scan directory, generate thumbnails)
+5. ✓ Implement image endpoints
+6. ✓ Configure uv for fast Python package management
+7. Test with sample panoramas from LAN
 
 **Critical files**:
 - `backend/main.py` - FastAPI app setup
 - `backend/database.py` - SQLite schema
 - `backend/services/image_service.py` - Image scanning & thumbnails
 - `backend/routes/images.py` - Image endpoints
+- `pyproject.toml` - Python dependencies (managed by uv)
+
+**Setup**:
+```bash
+# Install dependencies (creates venv automatically)
+uv sync
+
+# Run the server
+uv run python -m backend.main
+```
 
 **Verification**: Can list images, view thumbnails via API
 
 ---
 
-### Phase 2: Annotation Backend
+### Phase 2: Annotation Backend ✓ COMPLETED
 **Goal**: Full CRUD for annotations with coordinate conversion
 
 **Tasks**:
-1. Create annotation service
-2. Implement annotation endpoints
-3. Add UV coordinate validation
-4. Implement coordinate conversion (UV ↔ spherical)
-5. Create export service (COCO format)
-6. Add YOLO format support
-7. Unit test coordinate conversions
+1. ✓ Create annotation service
+2. ✓ Implement annotation endpoints
+3. ✓ Add UV coordinate validation
+4. ✓ Implement coordinate conversion (UV ↔ spherical)
+5. ✓ Create export service (COCO format)
+6. ✓ Add YOLO format support
+7. ✓ Unit test coordinate conversions (all tests pass)
 
 **Critical files**:
 - `backend/services/annotation_service.py` - Annotation CRUD
@@ -294,8 +306,9 @@ GET    /api/export/yolo/{image_id}    # Export single image
 - `backend/services/export_service.py` - COCO/YOLO generation
 - `backend/routes/annotations.py` - Annotation endpoints
 - `backend/routes/export.py` - Export endpoints
+- `test_coordinates.py` - Coordinate conversion tests
 
-**Verification**: Can create/update/delete annotations, export to COCO/YOLO
+**Verification**: ✓ Can create/update/delete annotations, export to COCO/YOLO, coordinate conversions verified
 
 ---
 
@@ -407,16 +420,21 @@ export:
 
 ## Dependencies
 
-### Backend (requirements.txt)
+### Backend (pyproject.toml)
+```toml
+[project]
+dependencies = [
+    "fastapi==0.104.1",
+    "uvicorn[standard]==0.24.0",
+    "pillow==10.1.0",
+    "numpy==1.26.2",
+    "pydantic==2.5.0",
+    "python-multipart==0.0.6",
+    "pyyaml==6.0.1",
+]
 ```
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pillow==10.1.0
-numpy==1.26.2
-pydantic==2.5.0
-python-multipart==0.0.6
-pyyaml==6.0.1
-```
+
+**Installation**: `uv sync`
 
 ### Frontend (package.json)
 ```json
@@ -458,7 +476,7 @@ pyyaml==6.0.1
 
 **Configuration (2 files)**:
 1. `config.yaml` - Server configuration
-2. `requirements.txt` - Python dependencies
+2. `pyproject.toml` - Python project metadata and dependencies (uv)
 
 ## Success Criteria
 

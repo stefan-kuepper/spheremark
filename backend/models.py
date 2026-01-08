@@ -55,7 +55,13 @@ class AnnotationBase(BaseModel):
         return v
 
 
+class AnnotationCreateRequest(AnnotationBase):
+    """Request model for creating annotations (no image_id needed in body)."""
+    pass
+
+
 class AnnotationCreate(AnnotationBase):
+    """Internal model with image_id for service layer."""
     image_id: int
 
 

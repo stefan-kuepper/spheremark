@@ -1,5 +1,6 @@
-import { Suspense, useRef, useCallback, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Suspense, useRef, useCallback, useState, useEffect } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
+import * as THREE from 'three';
 import { PanoramaSphere } from '../../viewer/PanoramaSphere';
 import { CameraController, type CameraControllerHandle } from '../../viewer/CameraController';
 import { BoundingBoxMesh } from '../../viewer/BoundingBox';
@@ -14,6 +15,70 @@ import { ExportDialog } from '../dialogs/ExportDialog';
 import { InteractionMode } from '../../types';
 import type { BoundingBox, UVCoordinate, HandleType } from '../../types';
 import { SELECTED_COLOR } from '../../utils/colors';
+
+interface DragHandlerProps {
+  onPointerMove: (uv: UVCoordinate) => void;
+  onPointerUp: (uv: UVCoordinate) => void;
+  isActive: boolean;
+}
+
+// Create a helper sphere matching PanoramaSphere for UV raycasting
+const SPHERE_RADIUS = 500;
+const helperSphere = new THREE.Mesh(
+  new THREE.SphereGeometry(SPHERE_RADIUS, 60, 30),
+  new THREE.MeshBasicMaterial()
+);
+helperSphere.rotation.set(0, Math.PI, 0); // Match PanoramaSphere rotation
+helperSphere.updateMatrixWorld();
+
+function DragHandler({ onPointerMove, onPointerUp, isActive }: DragHandlerProps) {
+  const { camera, gl } = useThree();
+  const raycasterRef = useRef(new THREE.Raycaster());
+
+  useEffect(() => {
+    if (!isActive) return;
+
+    const raycaster = raycasterRef.current;
+    const canvas = gl.domElement;
+
+    const getUVFromScreenCoords = (clientX: number, clientY: number): UVCoordinate | null => {
+      const rect = canvas.getBoundingClientRect();
+      const x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      const y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
+      const intersects = raycaster.intersectObject(helperSphere);
+
+      if (intersects.length > 0 && intersects[0].uv) {
+        return {
+          u: intersects[0].uv.x,
+          v: 1 - intersects[0].uv.y, // Match PanoramaSphere's UV inversion
+        };
+      }
+      return null;
+    };
+
+    const handleWindowPointerMove = (e: PointerEvent) => {
+      const uv = getUVFromScreenCoords(e.clientX, e.clientY);
+      if (uv) onPointerMove(uv);
+    };
+
+    const handleWindowPointerUp = (e: PointerEvent) => {
+      const uv = getUVFromScreenCoords(e.clientX, e.clientY);
+      if (uv) onPointerUp(uv);
+    };
+
+    window.addEventListener('pointermove', handleWindowPointerMove);
+    window.addEventListener('pointerup', handleWindowPointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', handleWindowPointerMove);
+      window.removeEventListener('pointerup', handleWindowPointerUp);
+    };
+  }, [isActive, camera, gl, onPointerMove, onPointerUp]);
+
+  return null;
+}
 
 export function PanoramaViewer() {
   const cameraRef = useRef<CameraControllerHandle>(null);
@@ -154,6 +219,13 @@ export function PanoramaViewer() {
               currentUV={drawState.currentUV}
             />
           )}
+
+          {/* Window-level drag handler for drawing and resizing */}
+          <DragHandler
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            isActive={drawState.isDrawing || resizeState.isResizing}
+          />
         </Canvas>
       </div>
 

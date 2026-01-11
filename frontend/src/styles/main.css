@@ -99,22 +99,40 @@ body {
     display: block;
 }
 
-.image-card-info {
+.image-card-info,
+.image-info {
     padding: 0.75rem;
 }
 
-.image-card-info h3 {
+.image-card-info h3,
+.image-name {
     font-size: 0.9rem;
     color: #333;
     margin-bottom: 0.25rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin: 0;
 }
 
-.image-card-info p {
+.image-card-info p,
+.annotation-count {
     font-size: 0.8rem;
     color: #666;
+    margin: 0.25rem 0 0 0;
+}
+
+.image-thumbnail {
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
+}
+
+.image-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 #loading-state,
@@ -287,6 +305,51 @@ body {
 .box-item.selected {
     background: rgba(0, 123, 255, 0.1);
     border-left-color: #007bff;
+}
+
+.box-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.box-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.box-id {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.box-label {
+    margin-bottom: 0.5rem;
+}
+
+.box-coords {
+    font-size: 0.75rem;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.btn-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.label-editor input {
+    width: 100%;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    font-size: 0.85rem;
 }
 
 .box-thumbnail {

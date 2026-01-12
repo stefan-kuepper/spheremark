@@ -14,6 +14,8 @@ uv run python -m backend.main
 
 # Run single test file
 uv run python test_coordinates.py
+# Or run with pytest
+uv run pytest tests/test_coordinates.py
 
 # Run specific Python script
 uv run python path/to/script.py

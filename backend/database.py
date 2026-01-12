@@ -3,6 +3,8 @@ from pathlib import Path
 from contextlib import contextmanager
 from typing import Optional
 
+from backend.migrations.migration_manager import MigrationManager
+
 
 class Database:
     """SQLite database manager for panoramic image annotations."""
@@ -13,47 +15,14 @@ class Database:
         self._init_db()
 
     def _init_db(self):
-        """Initialize database with schema if not exists."""
-        with self.get_connection() as conn:
-            cursor = conn.cursor()
+        """Initialize database with migrations."""
+        migration_manager = MigrationManager(str(self.db_path))
+        applied = migration_manager.apply_migrations()
 
-            # Images table
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS images (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    filename TEXT NOT NULL UNIQUE,
-                    filepath TEXT NOT NULL,
-                    width INTEGER NOT NULL,
-                    height INTEGER NOT NULL,
-                    thumbnail_path TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-
-            # Annotations table (stored as UV coordinates)
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS annotations (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    image_id INTEGER NOT NULL,
-                    label TEXT,
-                    uv_min_u REAL NOT NULL,
-                    uv_min_v REAL NOT NULL,
-                    uv_max_u REAL NOT NULL,
-                    uv_max_v REAL NOT NULL,
-                    color TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE CASCADE
-                )
-            """)
-
-            # Create index for faster lookups
-            cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_annotations_image_id
-                ON annotations(image_id)
-            """)
-
-            conn.commit()
+        if applied:
+            print(f"Applied {len(applied)} migration(s): {', '.join(applied)}")
+        else:
+            print("Database schema is up to date")
 
     @contextmanager
     def get_connection(self):

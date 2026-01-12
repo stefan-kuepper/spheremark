@@ -46,6 +46,9 @@ uv run python -m backend.main
 
 # Scan for images
 curl -X POST http://localhost:8000/api/images/scan
+
+# Create new migration
+uv run python create_migration.py "Migration description"
 ```
 
 ## Code Style Guidelines
@@ -134,6 +137,9 @@ spheremark/
 │   ├── config.py            # Pydantic config
 │   ├── database.py          # SQLite wrapper
 │   ├── models.py            # Pydantic models
+│   ├── migrations/          # Database migrations
+│   │   ├── migration_manager.py
+│   │   └── versions/        # Migration files (001_*.py, 002_*.py, etc.)
 │   ├── services/            # Business logic
 │   ├── routes/              # HTTP endpoints
 │   └── utils/               # Utilities
@@ -147,6 +153,7 @@ spheremark/
 │   └── vite.config.js       # Vite config
 ├── data/                    # Database, thumbnails
 ├── config.yaml             # App config
+├── create_migration.py     # Migration creation helper
 └── test_coordinates.py     # Coordinate tests
 ```
 
@@ -165,11 +172,15 @@ spheremark/
 ### Common Tasks
 1. **New API endpoint**: Add route → service method → update API client
 2. **New Three.js component**: Create in `viewer/` with `dispose()` method
-3. **Database changes**: Update schema in `database.py`, test with existing data
+3. **Database changes**: Create migration → update schema, test with existing data
 
 ### Configuration
 - Backend: `config.yaml` (set `images.remote_path` to panorama directory)
 - Frontend: API URL via `VITE_API_URL` env var (defaults to `http://localhost:8000`)
+
+## Database Migrations
+
+see [./MIGRATIONS.md]
 
 ## Agent Requirements
 - Follow existing patterns in each language
@@ -177,3 +188,4 @@ spheremark/
 - Handle large panoramic images efficiently
 - Maintain backend/frontend separation
 - Use proper error handling and logging
+- **Always create migrations for database schema changes**

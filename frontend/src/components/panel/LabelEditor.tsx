@@ -41,6 +41,7 @@ export function LabelEditor({ value, onSave, onCancel, suggestions }: LabelEdito
         onBlur={handleBlur}
         list="label-suggestions"
         placeholder="Enter label..."
+        data-testid="label-editor-input"
       />
       <datalist id="label-suggestions">
         {suggestions.map((suggestion) => (

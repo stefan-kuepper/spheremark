@@ -32,7 +32,7 @@ export function BoxList({ onFocusBox }: BoxListProps) {
 
   if (boxes.length === 0) {
     return (
-      <div id="empty-state">
+      <div id="empty-state" data-testid="empty-box-list">
         <p>No bounding boxes yet</p>
         <p style={{ fontSize: '0.9em', marginTop: '0.5rem' }}>
           Switch to Draw mode to create one
@@ -42,7 +42,7 @@ export function BoxList({ onFocusBox }: BoxListProps) {
   }
 
   return (
-    <div id="box-list">
+    <div id="box-list" data-testid="box-list">
       {boxes.map((box) => (
         <BoxItem
           key={box.id}

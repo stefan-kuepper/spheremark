@@ -72,12 +72,12 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
   }
 
   return (
-    <div id="export-dialog" className="dialog">
+    <div id="export-dialog" className="dialog" data-testid="export-dialog">
       <div className="dialog-overlay" onClick={onClose}></div>
       <div className="dialog-content">
         <div className="dialog-header">
           <h2>Export Annotations</h2>
-          <button className="dialog-close" onClick={onClose}>
+          <button className="dialog-close" onClick={onClose} data-testid="close-export-dialog">
             &times;
           </button>
         </div>
@@ -93,6 +93,7 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
                     value="coco"
                     checked={format === 'coco'}
                     onChange={() => setFormat('coco')}
+                    data-testid="format-coco-radio"
                   />
                   <span>COCO Format (JSON)</span>
                   <p className="radio-description">
@@ -106,6 +107,7 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
                     value="yolo"
                     checked={format === 'yolo'}
                     onChange={() => setFormat('yolo')}
+                    data-testid="format-yolo-radio"
                   />
                   <span>YOLO Format (TXT)</span>
                   <p className="radio-description">
@@ -125,6 +127,7 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
                     value="current"
                     checked={scope === 'current'}
                     onChange={() => setScope('current')}
+                    data-testid="scope-current-radio"
                   />
                   <span>Current Image Only</span>
                 </label>
@@ -135,6 +138,7 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
                     value="all"
                     checked={scope === 'all'}
                     onChange={() => setScope('all')}
+                    data-testid="scope-all-radio"
                   />
                   <span>All Images</span>
                 </label>
@@ -144,7 +148,7 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
             <div className="form-group">
               <label>Preview</label>
               <div className="export-preview">
-                <pre id="export-preview-content">
+                <pre id="export-preview-content" data-testid="export-preview">
                   {isLoading ? 'Loading...' : preview}
                 </pre>
               </div>
@@ -152,13 +156,13 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
           </div>
         </div>
         <div className="dialog-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
+          <button className="btn btn-secondary" onClick={onClose} data-testid="cancel-export-button">
             Cancel
           </button>
-          <button className="btn btn-primary" onClick={handleDownload}>
+          <button className="btn btn-primary" onClick={handleDownload} data-testid="download-export-button">
             Download
           </button>
-          <button className="btn btn-secondary" onClick={handleCopy}>
+          <button className="btn btn-secondary" onClick={handleCopy} data-testid="copy-export-button">
             Copy to Clipboard
           </button>
         </div>

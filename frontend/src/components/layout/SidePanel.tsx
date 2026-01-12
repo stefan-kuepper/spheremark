@@ -25,12 +25,13 @@ export function SidePanel({ onFocusBox }: SidePanelProps) {
   }
 
   return (
-    <div id="side-panel">
+    <div id="side-panel" data-testid="side-panel">
       <div className="panel-header">
         <h2>Bounding Boxes</h2>
         <button
           className="icon-button"
           onClick={() => setVisible(false)}
+          data-testid="close-panel-button"
         >
           &times;
         </button>

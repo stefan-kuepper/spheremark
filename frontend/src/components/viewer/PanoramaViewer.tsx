@@ -176,13 +176,14 @@ export function PanoramaViewer() {
 
   return (
     <>
-      <div id="canvas-container" style={{ cursor: canvasCursor }}>
+      <div id="canvas-container" style={{ cursor: canvasCursor }} data-testid="canvas-container">
         <Canvas
           camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 0, 0.1] }}
           gl={{ antialias: false }}
           onCreated={({ gl }) => {
             gl.outputColorSpace = 'srgb';
           }}
+          data-testid="three-canvas"
         >
           <Suspense fallback={null}>
             <PanoramaSphere

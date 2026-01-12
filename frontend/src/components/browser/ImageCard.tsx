@@ -14,11 +14,11 @@ export function ImageCard({ id, filename, annotationCount }: ImageCardProps) {
   };
 
   return (
-    <div className="image-card" onClick={handleClick}>
+    <div className="image-card" onClick={handleClick} data-testid={`image-card-${id}`}>
       <div className="image-thumbnail">
         <img src={getThumbnailUrl(id)} alt={filename} loading="lazy" />
       </div>
-      <div className="image-info">
+      <div className="image-info" data-testid={`image-info-${id}`}>
         <p className="image-name" title={filename}>
           {filename}
         </p>

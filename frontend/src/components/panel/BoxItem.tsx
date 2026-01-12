@@ -50,6 +50,7 @@ export function BoxItem({ box, isSelected, suggestions, onFocus }: BoxItemProps)
       className={`box-item ${isSelected ? 'selected' : ''}`}
       onClick={handleClick}
       style={{ borderLeftColor: box.color }}
+      data-testid={`box-item-${box.id}`}
     >
       <div className="box-header">
         <span
@@ -72,6 +73,7 @@ export function BoxItem({ box, isSelected, suggestions, onFocus }: BoxItemProps)
             className="label-text"
             onClick={handleEditLabel}
             title="Click to edit label"
+            data-testid={`box-label-${box.id}`}
           >
             {box.label || '(no label)'}
           </span>
@@ -107,6 +109,7 @@ export function BoxItem({ box, isSelected, suggestions, onFocus }: BoxItemProps)
           className="btn btn-small btn-danger"
           onClick={handleDelete}
           title="Delete box (Delete)"
+          data-testid={`delete-box-button-${box.id}`}
         >
           Delete
         </button>

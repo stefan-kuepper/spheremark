@@ -8,7 +8,7 @@ interface ImageGridProps {
 export function ImageGrid({ images }: ImageGridProps) {
   if (images.length === 0) {
     return (
-      <div id="empty-state" className="browser-empty">
+      <div id="empty-state" className="browser-empty" data-testid="empty-state">
         <p>No images found</p>
         <p style={{ fontSize: '0.9em', marginTop: '0.5rem' }}>
           Click "Scan for Images" to discover panoramic images
@@ -18,7 +18,7 @@ export function ImageGrid({ images }: ImageGridProps) {
   }
 
   return (
-    <div id="image-grid">
+    <div id="image-grid" data-testid="image-grid">
       {images.map((image) => (
         <ImageCard
           key={image.id}

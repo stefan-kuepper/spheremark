@@ -17,6 +17,13 @@ uv run python test_coordinates.py
 # Or run with pytest
 uv run pytest tests/test_coordinates.py
 
+# Run migration tests
+uv run pytest tests/test_migrations.py
+uv run pytest tests/test_real_migration.py
+
+# Run all tests
+uv run pytest tests/
+
 # Run specific Python script
 uv run python path/to/script.py
 ```

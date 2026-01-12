@@ -10,33 +10,6 @@ A web-based tool for annotating panoramic images with spherical bounding boxes. 
 - Export annotations in COCO and YOLO formats with spherical coordinates
 - Single-user LAN deployment
 
-## Project Status
-
-**Phase 1: Backend Foundation** ✓ COMPLETED
-- FastAPI server with CORS
-- SQLite database for images and annotations
-- Image scanning and thumbnail generation
-- REST API endpoints for images
-
-**Phase 2: Annotation Backend** ✓ COMPLETED
-- Full CRUD for annotations
-- UV ↔ spherical coordinate conversion
-- COCO format export with spherical coordinates
-- YOLO format export
-- Coordinate conversion tests verified
-
-**Phase 3: Frontend Modularization** ✓ COMPLETED
-- Vite project setup with ES6 modules
-- Three.js viewer with scene management
-- API client for backend communication
-- Bounding box manager with auto-save
-- Image browser UI
-- Draw and edit interactions
-- Modular architecture (viewer, interactions, managers)
-
-**Phase 4: New UI Features** ✓ COMPLETED
-**Phase 5: Testing & Deployment** - PENDING
-
 ## Setup
 
 ### Prerequisites
@@ -45,8 +18,6 @@ A web-based tool for annotating panoramic images with spherical bounding boxes. 
 - [uv](https://github.com/astral-sh/uv) - Fast Python package installer (10-100x faster than pip)
 - Node.js 18+ (for frontend, Phase 3+)
 - Access to panoramic images directory
-
-> **Why uv?** This project uses uv for Python package management because it's significantly faster than pip, handles virtual environments automatically, and provides better dependency resolution.
 
 ### Installation
 
@@ -259,23 +230,61 @@ spheremark/
 │   └── thumbnails/                   # Generated thumbnails
 ├── frontend/                         # Frontend (Phase 3+)
 │   ├── src/
-│   │   ├── main.js                   # Application entry point
+│   │   ├── main.tsx                  # React application entry point
+│   │   ├── App.tsx                   # Main application component
 │   │   ├── api/
-│   │   │   └── client.js             # Backend API client
-│   │   ├── viewer/
-│   │   │   ├── scene.js              # Three.js scene setup
-│   │   │   ├── BoundingBox3D.js      # Box rendering
-│   │   │   ├── BoxHandle.js          # Resize handles
-│   │   │   └── interactions/
-│   │   │       ├── DrawInteraction.js    # Box creation
-│   │   │       └── ResizeInteraction.js  # Box editing
-│   │   └── managers/
-│   │       └── BoundingBoxManager.js # Box lifecycle + server sync
-│   ├── styles/
-│   │   └── main.css                  # Application styles
+│   │   │   ├── client.ts             # Backend API client
+│   │   │   ├── images.ts             # Image API functions
+│   │   │   ├── annotations.ts        # Annotation API functions
+│   │   │   └── exports.ts            # Export API functions
+│   │   ├── components/
+│   │   │   ├── browser/              # Image browser components
+│   │   │   │   ├── ImageBrowser.tsx
+│   │   │   │   ├── ImageGrid.tsx
+│   │   │   │   └── ImageCard.tsx
+│   │   │   ├── layout/               # Layout components
+│   │   │   │   ├── Toolbar.tsx
+│   │   │   │   ├── SidePanel.tsx
+│   │   │   │   ├── SaveStatus.tsx
+│   │   │   │   └── ModeIndicator.tsx
+│   │   │   ├── panel/                # Side panel components
+│   │   │   │   ├── BoxList.tsx
+│   │   │   │   ├── BoxItem.tsx
+│   │   │   │   └── LabelEditor.tsx
+│   │   │   ├── viewer/               # Panorama viewer components
+│   │   │   │   └── PanoramaViewer.tsx
+│   │   │   └── dialogs/              # Dialog components
+│   │   │       └── ExportDialog.tsx
+│   │   ├── contexts/                 # React contexts
+│   │   │   ├── ImageContext.tsx
+│   │   │   ├── AnnotationContext.tsx
+│   │   │   └── InteractionContext.tsx
+│   │   ├── hooks/                    # Custom React hooks
+│   │   │   ├── useImages.ts
+│   │   │   ├── useAnnotations.ts
+│   │   │   ├── useInteraction.ts
+│   │   │   ├── useKeyboardShortcuts.ts
+│   │   │   └── index.ts
+│   │   ├── viewer/                   # Three.js viewer components
+│   │   │   ├── PanoramaSphere.tsx
+│   │   │   ├── BoundingBox.tsx
+│   │   │   ├── BoxHandles.tsx
+│   │   │   ├── DrawPreview.tsx
+│   │   │   └── CameraController.tsx
+│   │   ├── types/                    # TypeScript types
+│   │   │   ├── index.ts
+│   │   │   ├── image.ts
+│   │   │   ├── annotation.ts
+│   │   │   └── interaction.ts
+│   │   ├── utils/                    # Utility functions
+│   │   │   ├── coordinates.ts
+│   │   │   └── colors.ts
+│   │   └── styles/
+│   │       └── main.css              # Application styles
 │   ├── index.html                    # HTML entry point
 │   ├── package.json                  # Node dependencies
-│   └── vite.config.js                # Vite configuration
+│   ├── vite.config.ts                # Vite configuration
+│   └── tsconfig.json                 # TypeScript configuration
 ├── config.yaml                       # Configuration
 ├── pyproject.toml                    # Python project metadata & dependencies
 ├── test_coordinates.py               # Coordinate conversion tests (Phase 2)

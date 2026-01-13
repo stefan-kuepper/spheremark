@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useImages } from '../../hooks';
-import { exports as exportsApi } from '../../api';
+import { useImages } from '@/hooks';
+import { exports as exportsApi } from '@/api';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Download, Copy, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ExportDialogProps {
   isOpen: boolean;
@@ -61,108 +72,112 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(preview);
-      alert('Copied to clipboard!');
     } catch (error) {
       console.error('Failed to copy:', error);
     }
   };
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div id="export-dialog" className="dialog">
-      <div className="dialog-overlay" onClick={onClose}></div>
-      <div className="dialog-content">
-        <div className="dialog-header">
-          <h2>Export Annotations</h2>
-          <button className="dialog-close" onClick={onClose}>
-            &times;
-          </button>
-        </div>
-        <div className="dialog-body">
-          <div className="export-options">
-            <div className="form-group">
-              <label>Export Format</label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    name="format"
-                    value="coco"
-                    checked={format === 'coco'}
-                    onChange={() => setFormat('coco')}
-                  />
-                  <span>COCO Format (JSON)</span>
-                  <p className="radio-description">
-                    Standard COCO format with spherical coordinates
-                  </p>
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    name="format"
-                    value="yolo"
-                    checked={format === 'yolo'}
-                    onChange={() => setFormat('yolo')}
-                  />
-                  <span>YOLO Format (TXT)</span>
-                  <p className="radio-description">
-                    YOLO format with spherical coordinates, one .txt file per image
-                  </p>
-                </label>
-              </div>
-            </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Export Annotations</DialogTitle>
+        </DialogHeader>
 
-            <div className="form-group">
-              <label>Scope</label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    name="scope"
-                    value="current"
-                    checked={scope === 'current'}
-                    onChange={() => setScope('current')}
-                  />
-                  <span>Current Image Only</span>
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    name="scope"
-                    value="all"
-                    checked={scope === 'all'}
-                    onChange={() => setScope('all')}
-                  />
-                  <span>All Images</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Preview</label>
-              <div className="export-preview">
-                <pre id="export-preview-content">
-                  {isLoading ? 'Loading...' : preview}
-                </pre>
-              </div>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Export Format</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                className={cn(
+                  'p-3 rounded-md border text-left transition-colors',
+                  format === 'coco'
+                    ? 'border-primary bg-primary/5'
+                    : 'hover:bg-accent'
+                )}
+                onClick={() => setFormat('coco')}
+              >
+                <div className="font-medium">COCO Format</div>
+                <div className="text-xs text-muted-foreground">
+                  Standard COCO format with spherical coordinates
+                </div>
+              </button>
+              <button
+                className={cn(
+                  'p-3 rounded-md border text-left transition-colors',
+                  format === 'yolo'
+                    ? 'border-primary bg-primary/5'
+                    : 'hover:bg-accent'
+                )}
+                onClick={() => setFormat('yolo')}
+              >
+                <div className="font-medium">YOLO Format</div>
+                <div className="text-xs text-muted-foreground">
+                  YOLO format with spherical coordinates
+                </div>
+              </button>
             </div>
           </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Scope</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                className={cn(
+                  'p-3 rounded-md border text-left transition-colors',
+                  scope === 'current'
+                    ? 'border-primary bg-primary/5'
+                    : 'hover:bg-accent'
+                )}
+                onClick={() => setScope('current')}
+              >
+                <div className="font-medium">Current Image Only</div>
+              </button>
+              <button
+                className={cn(
+                  'p-3 rounded-md border text-left transition-colors',
+                  scope === 'all'
+                    ? 'border-primary bg-primary/5'
+                    : 'hover:bg-accent'
+                )}
+                onClick={() => setScope('all')}
+              >
+                <div className="font-medium">All Images</div>
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Preview</label>
+            <ScrollArea className="h-64 rounded-md border bg-muted/50">
+              <pre className="p-4 text-xs font-mono">
+                {isLoading ? (
+                  <span className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading...
+                  </span>
+                ) : (
+                  preview
+                )}
+              </pre>
+            </ScrollArea>
+          </div>
         </div>
-        <div className="dialog-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
             Cancel
-          </button>
-          <button className="btn btn-primary" onClick={handleDownload}>
+          </Button>
+          <Button variant="outline" onClick={handleCopy}>
+            <Copy className="h-4 w-4 mr-2" />
+            Copy
+          </Button>
+          <Button onClick={handleDownload}>
+            <Download className="h-4 w-4 mr-2" />
             Download
-          </button>
-          <button className="btn btn-secondary" onClick={handleCopy}>
-            Copy to Clipboard
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

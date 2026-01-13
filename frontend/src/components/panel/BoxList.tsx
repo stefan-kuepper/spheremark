@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { useAnnotations } from '../../hooks';
+import { useAnnotations } from '@/hooks';
 import { BoxItem } from './BoxItem';
-import type { BoundingBox } from '../../types';
+import type { BoundingBox } from '@/types';
 
 const DEFAULT_SUGGESTIONS = [
   'traffic_sign',
@@ -32,17 +32,17 @@ export function BoxList({ onFocusBox }: BoxListProps) {
 
   if (boxes.length === 0) {
     return (
-      <div id="empty-state">
+      <div className="p-4 text-center text-muted-foreground">
         <p>No bounding boxes yet</p>
-        <p style={{ fontSize: '0.9em', marginTop: '0.5rem' }}>
-          Switch to Draw mode to create one
+        <p className="text-sm mt-2">
+          Click and drag on the panorama to create one
         </p>
       </div>
     );
   }
 
   return (
-    <div id="box-list">
+    <div className="divide-y divide-border">
       {boxes.map((box) => (
         <BoxItem
           key={box.id}

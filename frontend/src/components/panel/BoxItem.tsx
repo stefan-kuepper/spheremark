@@ -1,7 +1,11 @@
 import { useState } from 'react';
-import { useAnnotations } from '../../hooks';
+import { useAnnotations } from '@/hooks';
 import { LabelEditor } from './LabelEditor';
-import type { BoundingBox } from '../../types';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Focus, Pencil, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { BoundingBox } from '@/types';
 
 interface BoxItemProps {
   box: BoundingBox;
@@ -47,19 +51,22 @@ export function BoxItem({ box, isSelected, suggestions, onFocus }: BoxItemProps)
 
   return (
     <div
-      className={`box-item ${isSelected ? 'selected' : ''}`}
-      onClick={handleClick}
+      className={cn(
+        'p-3 cursor-pointer transition-colors border-l-4',
+        isSelected ? 'bg-accent' : 'hover:bg-accent/50'
+      )}
       style={{ borderLeftColor: box.color }}
+      onClick={handleClick}
     >
-      <div className="box-header">
+      <div className="flex items-center gap-2 mb-2">
         <span
-          className="box-color"
+          className="w-3 h-3 rounded-sm shrink-0"
           style={{ backgroundColor: box.color }}
-        ></span>
-        <span className="box-id">Box #{box.id}</span>
+        />
+        <span className="font-semibold text-sm">Box #{box.id}</span>
       </div>
 
-      <div className="box-label">
+      <div className="mb-2">
         {isEditingLabel ? (
           <LabelEditor
             value={box.label}
@@ -68,48 +75,41 @@ export function BoxItem({ box, isSelected, suggestions, onFocus }: BoxItemProps)
             suggestions={suggestions}
           />
         ) : (
-          <span
-            className="label-text"
+          <Badge
+            variant="secondary"
+            className="cursor-pointer hover:bg-secondary/80"
             onClick={handleEditLabel}
-            title="Click to edit label"
           >
             {box.label || '(no label)'}
-          </span>
+          </Badge>
         )}
       </div>
 
-      <div className="box-coords">
-        <span>
+      <div className="text-xs text-muted-foreground space-y-0.5 mb-3">
+        <div>
           UV: ({box.uvMin.u.toFixed(3)}, {box.uvMin.v.toFixed(3)}) - (
           {box.uvMax.u.toFixed(3)}, {box.uvMax.v.toFixed(3)})
-        </span>
-        <span>
-          Size: {width}% x {height}%
-        </span>
+        </div>
+        <div>Size: {width}% x {height}%</div>
       </div>
 
-      <div className="box-actions">
-        <button
-          className="btn btn-small"
-          onClick={handleFocus}
-          title="Focus on box"
-        >
+      <div className="flex gap-1">
+        <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleFocus}>
+          <Focus className="h-3 w-3 mr-1" />
           Focus
-        </button>
-        <button
-          className="btn btn-small"
-          onClick={handleEditLabel}
-          title="Edit label (L)"
-        >
-          Edit Label
-        </button>
-        <button
-          className="btn btn-small btn-danger"
+        </Button>
+        <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleEditLabel}>
+          <Pencil className="h-3 w-3 mr-1" />
+          Label
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 px-2 text-destructive hover:text-destructive"
           onClick={handleDelete}
-          title="Delete box (Delete)"
         >
-          Delete
-        </button>
+          <Trash2 className="h-3 w-3" />
+        </Button>
       </div>
     </div>
   );

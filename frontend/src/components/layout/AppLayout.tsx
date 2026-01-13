@@ -2,6 +2,7 @@ import { ReactNode, useState } from 'react';
 import { Header } from './Header';
 import { LeftSidebar } from './LeftSidebar';
 import { RightSidebar } from './RightSidebar';
+import { ExportDialog } from '@/components/dialogs/ExportDialog';
 import { cn } from '@/lib/utils';
 import type { BoundingBox } from '@/types';
 
@@ -56,18 +57,10 @@ export function AppLayout({
         )}
       </div>
 
-      {exportDialogOpen && (
-        <ExportDialogWrapper
-          isOpen={exportDialogOpen}
-          onClose={() => setExportDialogOpen(false)}
-        />
-      )}
+      <ExportDialog
+        isOpen={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+      />
     </div>
   );
-}
-
-// Lazy import wrapper for export dialog
-function ExportDialogWrapper({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { ExportDialog } = require('@/components/dialogs/ExportDialog');
-  return <ExportDialog isOpen={isOpen} onClose={onClose} />;
 }

@@ -682,3 +682,43 @@ body {
 .hidden {
     display: none;
 }
+
+/* Error Page Styles */
+.error-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    color: #fff;
+}
+
+.error-page h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.error-page p {
+    color: #999;
+    margin-bottom: 1rem;
+}
+
+.error-page a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.error-page a:hover {
+    text-decoration: underline;
+}
+
+/* Loading State */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    color: #999;
+    font-size: 1.1rem;
+}

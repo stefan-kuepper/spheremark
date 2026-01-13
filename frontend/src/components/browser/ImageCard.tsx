@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useImages } from '../../hooks';
 
 interface ImageCardProps {
@@ -7,10 +8,11 @@ interface ImageCardProps {
 }
 
 export function ImageCard({ id, filename, annotationCount }: ImageCardProps) {
-  const { selectImage, getThumbnailUrl } = useImages();
+  const { getThumbnailUrl } = useImages();
+  const navigate = useNavigate();
 
   const handleClick = () => {
-    selectImage(id);
+    navigate(`/image/${id}`);
   };
 
   return (

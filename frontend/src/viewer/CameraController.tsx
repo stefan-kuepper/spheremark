@@ -87,6 +87,11 @@ export const CameraController = forwardRef<CameraControllerHandle, object>(
         rotateSpeed={-0.5}
         enableZoom={false}
         enablePan={false}
+        mouseButtons={{
+          LEFT: undefined,
+          MIDDLE: THREE.MOUSE.ROTATE,
+          RIGHT: undefined,
+        }}
         enabled={controlsEnabled}
       />
     );

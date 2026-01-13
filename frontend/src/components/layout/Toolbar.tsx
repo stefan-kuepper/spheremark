@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useImages, useInteraction } from '../../hooks';
-import { InteractionMode } from '../../types';
+import { useImages } from '../../hooks';
 
 interface ToolbarProps {
   onExportClick: () => void;
@@ -8,7 +7,6 @@ interface ToolbarProps {
 
 export function Toolbar({ onExportClick }: ToolbarProps) {
   const { clearImage } = useImages();
-  const { mode, setMode } = useInteraction();
   const [panelVisible, setPanelVisible] = useState(true);
 
   const handleTogglePanel = () => {
@@ -21,29 +19,7 @@ export function Toolbar({ onExportClick }: ToolbarProps) {
 
   return (
     <div id="toolbar">
-      <button
-        className={`mode-button ${mode === InteractionMode.VIEW ? 'active' : ''}`}
-        onClick={() => setMode(InteractionMode.VIEW)}
-        title="View Mode (ESC)"
-      >
-        <span>&#x1f441;&#xfe0f;</span>
-      </button>
-      <button
-        className={`mode-button ${mode === InteractionMode.DRAW ? 'active' : ''}`}
-        onClick={() => setMode(InteractionMode.DRAW)}
-        title="Draw Mode (D)"
-      >
-        <span>&#x270f;&#xfe0f;</span>
-      </button>
-      <button
-        className={`mode-button ${mode === InteractionMode.EDIT ? 'active' : ''}`}
-        onClick={() => setMode(InteractionMode.EDIT)}
-        title="Edit Mode (E)"
-      >
-        <span>&#x270b;</span>
-      </button>
 
-      <div className="toolbar-divider"></div>
 
       <button
         className="icon-button"

@@ -3,27 +3,27 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from 'react';
 import type {
-  InteractionMode,
   DrawState,
   ResizeState,
+  HoverState,
   HandleType,
   UVCoordinate,
   BoundingBox,
 } from '../types';
-import { InteractionMode as Mode } from '../types';
 
 const MIN_BOX_SIZE = 0.02;
 const MAX_BOX_WIDTH = 0.5;
 
 interface InteractionContextValue {
-  mode: InteractionMode;
   drawState: DrawState;
   resizeState: ResizeState;
+  hoverState: HoverState;
+  middleMousePressed: boolean;
   controlsEnabled: boolean;
-  setMode: (mode: InteractionMode) => void;
   startDraw: (uv: UVCoordinate) => void;
   updateDraw: (uv: UVCoordinate) => void;
   finishDraw: () => { uvMin: UVCoordinate; uvMax: UVCoordinate } | null;
@@ -39,6 +39,8 @@ interface InteractionContextValue {
   ) => { uvMin: UVCoordinate; uvMax: UVCoordinate } | null;
   finishResize: () => void;
   cancelResize: () => { uvMin: UVCoordinate; uvMax: UVCoordinate } | null;
+  setMiddleMousePressed: (pressed: boolean) => void;
+  setHoveredBox: (boxId: string | number | null) => void;
 }
 
 const initialDrawState: DrawState = {
@@ -54,6 +56,10 @@ const initialResizeState: ResizeState = {
   originalBox: null,
 };
 
+const initialHoverState: HoverState = {
+  hoveredBoxId: null,
+};
+
 const InteractionContext = createContext<InteractionContextValue | null>(null);
 
 interface InteractionProviderProps {
@@ -61,18 +67,11 @@ interface InteractionProviderProps {
 }
 
 export function InteractionProvider({ children }: InteractionProviderProps) {
-  const [mode, setModeState] = useState<InteractionMode>(Mode.VIEW);
   const [drawState, setDrawState] = useState<DrawState>(initialDrawState);
   const [resizeState, setResizeState] = useState<ResizeState>(initialResizeState);
-  const [controlsEnabled, setControlsEnabled] = useState(true);
-
-  const setMode = useCallback((newMode: InteractionMode) => {
-    setModeState(newMode);
-    setControlsEnabled(newMode === Mode.VIEW);
-    // Cancel any active interactions
-    setDrawState(initialDrawState);
-    setResizeState(initialResizeState);
-  }, []);
+  const [hoverState, setHoverState] = useState<HoverState>(initialHoverState);
+  const [middleMousePressed, setMiddleMousePressedState] = useState(false);
+  const [controlsEnabled, setControlsEnabled] = useState(false);
 
   const startDraw = useCallback((uv: UVCoordinate) => {
     setDrawState({
@@ -80,6 +79,7 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
       startUV: { ...uv },
       currentUV: { ...uv },
     });
+    setControlsEnabled(false);
   }, []);
 
   const updateDraw = useCallback((uv: UVCoordinate) => {
@@ -112,6 +112,7 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
     const { startUV, currentUV } = drawState;
 
     setDrawState(initialDrawState);
+    setControlsEnabled(middleMousePressed);
 
     if (!startUV || !currentUV) return null;
 
@@ -130,11 +131,12 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
     }
 
     return { uvMin, uvMax };
-  }, [drawState]);
+  }, [drawState, middleMousePressed]);
 
   const cancelDraw = useCallback(() => {
     setDrawState(initialDrawState);
-  }, []);
+    setControlsEnabled(middleMousePressed);
+  }, [middleMousePressed]);
 
   const startResize = useCallback(
     (
@@ -197,22 +199,39 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
 
   const finishResize = useCallback(() => {
     setResizeState(initialResizeState);
-    setControlsEnabled(mode === Mode.VIEW);
-  }, [mode]);
+    setControlsEnabled(middleMousePressed);
+  }, [middleMousePressed]);
 
   const cancelResize = useCallback((): { uvMin: UVCoordinate; uvMax: UVCoordinate } | null => {
     const original = resizeState.originalBox;
     setResizeState(initialResizeState);
-    setControlsEnabled(mode === Mode.VIEW);
+    setControlsEnabled(middleMousePressed);
     return original;
-  }, [resizeState.originalBox, mode]);
+  }, [resizeState.originalBox, middleMousePressed]);
+
+  const setMiddleMousePressed = useCallback((pressed: boolean) => {
+    setMiddleMousePressedState(pressed);
+  }, []);
+
+  const setHoveredBox = useCallback((boxId: string | number | null) => {
+    setHoverState({ hoveredBoxId: boxId });
+  }, []);
+
+  useEffect(() => {
+    setControlsEnabled(middleMousePressed);
+    // Cancel drawing and resizing when middle mouse is pressed
+    if (middleMousePressed) {
+      setDrawState(initialDrawState);
+      setResizeState(initialResizeState);
+    }
+  }, [middleMousePressed]);
 
   const value: InteractionContextValue = {
-    mode,
     drawState,
     resizeState,
+    hoverState,
+    middleMousePressed,
     controlsEnabled,
-    setMode,
     startDraw,
     updateDraw,
     finishDraw,
@@ -221,6 +240,8 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
     updateResize,
     finishResize,
     cancelResize,
+    setMiddleMousePressed,
+    setHoveredBox,
   };
 
   return (

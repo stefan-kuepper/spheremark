@@ -12,7 +12,7 @@ import { SidePanel } from '../layout/SidePanel';
 import { ModeIndicator } from '../layout/ModeIndicator';
 import { SaveStatus } from '../layout/SaveStatus';
 import { ExportDialog } from '../dialogs/ExportDialog';
-import { InteractionMode } from '../../types';
+
 import type { BoundingBox, UVCoordinate, HandleType } from '../../types';
 import { SELECTED_COLOR } from '../../utils/colors';
 
@@ -95,9 +95,12 @@ export function PanoramaViewer() {
   } = useAnnotations();
 
   const {
-    mode,
     drawState,
     resizeState,
+    hoverState,
+    middleMousePressed,
+    setMiddleMousePressed,
+    setHoveredBox,
     startDraw,
     updateDraw,
     finishDraw,
@@ -109,24 +112,69 @@ export function PanoramaViewer() {
   // Keyboard shortcuts
   useKeyboardShortcuts();
 
+  // Middle mouse button detection and hover cleanup
+  useEffect(() => {
+    const canvas = document.querySelector('#canvas-container canvas');
+    if (!canvas) return;
+
+    const handleMouseDown = (e: Event) => {
+      const mouseEvent = e as MouseEvent;
+      if (mouseEvent.button === 1) { // middle mouse
+        mouseEvent.preventDefault();
+        setMiddleMousePressed(true);
+      }
+    };
+
+    const handleMouseUp = (e: Event) => {
+      const mouseEvent = e as MouseEvent;
+      if (mouseEvent.button === 1) {
+        setMiddleMousePressed(false);
+      }
+    };
+
+    const handlePointerLeave = () => {
+      setHoveredBox(null);
+    };
+
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mouseup', handleMouseUp);
+    canvas.addEventListener('pointerleave', handlePointerLeave);
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault()); // prevent right-click menu
+
+    return () => {
+      canvas.removeEventListener('mousedown', handleMouseDown);
+      canvas.removeEventListener('mouseup', handleMouseUp);
+      canvas.removeEventListener('pointerleave', handlePointerLeave);
+    };
+  }, [setMiddleMousePressed, setHoveredBox]);
+
   const handleFocusBox = useCallback((box: BoundingBox) => {
     cameraRef.current?.focusOnBox(box);
   }, []);
 
   const handlePointerDown = useCallback(
     (uv: UVCoordinate) => {
-      if (mode === InteractionMode.DRAW) {
+      // Ignore if middle mouse is pressed
+      if (middleMousePressed) return;
+
+      const box = getBoxAtUV(uv);
+      if (box) {
+        // Left click on box: select it
+        selectBox(box.id);
+      } else {
+        // Left click on empty space: start drawing
         startDraw(uv);
-      } else if (mode === InteractionMode.EDIT) {
-        const box = getBoxAtUV(uv);
-        selectBox(box?.id ?? null);
       }
     },
-    [mode, startDraw, getBoxAtUV, selectBox]
+    [middleMousePressed, getBoxAtUV, selectBox, startDraw]
   );
 
   const handlePointerMove = useCallback(
     (uv: UVCoordinate) => {
+      // Update hover state
+      const box = getBoxAtUV(uv);
+      setHoveredBox(box?.id ?? null);
+
       if (drawState.isDrawing) {
         updateDraw(uv);
       } else if (resizeState.isResizing) {
@@ -139,7 +187,7 @@ export function PanoramaViewer() {
         }
       }
     },
-    [drawState.isDrawing, resizeState.isResizing, resizeState.boxId, updateDraw, updateResize, getSelectedBox, updateBox]
+    [drawState.isDrawing, resizeState.isResizing, resizeState.boxId, updateDraw, updateResize, getSelectedBox, updateBox, getBoxAtUV, setHoveredBox]
   );
 
   const handlePointerUp = useCallback(
@@ -167,12 +215,17 @@ export function PanoramaViewer() {
   );
 
   // Determine canvas cursor
-  const canvasCursor =
-    mode === InteractionMode.DRAW
-      ? 'crosshair'
-      : mode === InteractionMode.EDIT
-        ? 'pointer'
-        : 'grab';
+  const canvasCursor = middleMousePressed
+    ? 'grab'
+    : hoverState.hoveredBoxId !== null
+      ? 'pointer'
+      : 'crosshair';
+
+  // Determine which box to show handles for (hovered or selected)
+  const boxIdToShowHandles = hoverState.hoveredBoxId ?? selectedBoxId;
+  const boxToShowHandles = boxIdToShowHandles
+    ? boxes.find((b) => b.id === boxIdToShowHandles)
+    : null;
 
   return (
     <>
@@ -204,10 +257,10 @@ export function PanoramaViewer() {
             />
           ))}
 
-          {/* Render handles for selected box in EDIT mode */}
-          {mode === InteractionMode.EDIT && selectedBoxId !== null && (
+          {/* Render handles for hovered or selected box */}
+          {boxToShowHandles && (
             <BoxHandles
-              box={boxes.find((b) => b.id === selectedBoxId)!}
+              box={boxToShowHandles}
               onDragStart={handleResizeStart}
             />
           )}

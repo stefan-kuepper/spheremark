@@ -3,7 +3,7 @@ server:
   port: 8000
 
 images:
-  remote_path: "."
+  remote_path: "./data"
   allowed_extensions: [".jpg", ".jpeg", ".png"]
 
 thumbnails:

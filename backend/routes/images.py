@@ -39,7 +39,7 @@ async def get_image_file(image_id: int):
     return FileResponse(
         file_path,
         media_type="image/jpeg",
-        headers={"Cache-Control": "public, max-age=3600"}
+        headers={"Cache-Control": "public, max-age=3600"},
     )
 
 
@@ -55,7 +55,7 @@ async def get_thumbnail(image_id: int):
     return FileResponse(
         thumbnail_path,
         media_type="image/jpeg",
-        headers={"Cache-Control": "public, max-age=3600"}
+        headers={"Cache-Control": "public, max-age=3600"},
     )
 
 

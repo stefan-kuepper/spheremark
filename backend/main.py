@@ -26,7 +26,7 @@ app = FastAPI(
     title="SphereMark API",
     description="Backend API for SphereMark - Annotate panoramic images with spherical bounding boxes",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Configure CORS for local development
@@ -47,11 +47,7 @@ app.include_router(export.router)
 @app.get("/")
 async def root():
     """Root endpoint."""
-    return {
-        "message": "SphereMark API",
-        "version": "1.0.0",
-        "docs": "/docs"
-    }
+    return {"message": "SphereMark API", "version": "1.0.0", "docs": "/docs"}
 
 
 @app.get("/health")
@@ -62,10 +58,11 @@ async def health():
 
 if __name__ == "__main__":
     import uvicorn
+
     config = load_config()
     uvicorn.run(
         "backend.main:app",
         host=config.server.host,
         port=config.server.port,
-        reload=True
+        reload=True,
     )

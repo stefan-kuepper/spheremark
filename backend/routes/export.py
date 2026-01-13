@@ -70,7 +70,9 @@ async def export_image_yolo_txt(image_id: int):
 
         # Get the first (and only) file content
         if not yolo_data["files"]:
-            raise HTTPException(status_code=404, detail="No annotations found for this image")
+            raise HTTPException(
+                status_code=404, detail="No annotations found for this image"
+            )
 
         filename = list(yolo_data["files"].keys())[0]
         content = yolo_data["files"][filename]
@@ -81,7 +83,7 @@ async def export_image_yolo_txt(image_id: int):
             media_type="text/plain",
             headers={
                 "Content-Disposition": f"attachment; filename={filename.rsplit('.', 1)[0]}.txt"
-            }
+            },
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -100,9 +102,7 @@ async def export_yolo_classes():
         return Response(
             content=content,
             media_type="text/plain",
-            headers={
-                "Content-Disposition": "attachment; filename=classes.txt"
-            }
+            headers={"Content-Disposition": "attachment; filename=classes.txt"},
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

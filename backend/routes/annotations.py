@@ -2,7 +2,12 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 
 from backend.services.annotation_service import AnnotationService
-from backend.models import AnnotationCreate, AnnotationCreateRequest, AnnotationUpdate, AnnotationResponse
+from backend.models import (
+    AnnotationCreate,
+    AnnotationCreateRequest,
+    AnnotationUpdate,
+    AnnotationResponse,
+)
 
 router = APIRouter(prefix="/api", tags=["annotations"])
 
@@ -14,7 +19,9 @@ async def get_annotations_for_image(image_id: int):
     return service.get_annotations_for_image(image_id)
 
 
-@router.post("/images/{image_id}/annotations", response_model=AnnotationResponse, status_code=201)
+@router.post(
+    "/images/{image_id}/annotations", response_model=AnnotationResponse, status_code=201
+)
 async def create_annotation(image_id: int, annotation_req: AnnotationCreateRequest):
     """Create a new annotation for an image."""
     # Construct the full annotation object with image_id from path
@@ -25,7 +32,7 @@ async def create_annotation(image_id: int, annotation_req: AnnotationCreateReque
         uv_min_v=annotation_req.uv_min_v,
         uv_max_u=annotation_req.uv_max_u,
         uv_max_v=annotation_req.uv_max_v,
-        color=annotation_req.color
+        color=annotation_req.color,
     )
 
     service = AnnotationService()

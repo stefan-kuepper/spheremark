@@ -41,8 +41,7 @@ class ImageService:
             try:
                 # Check if already in database
                 existing = self.db.fetchone(
-                    "SELECT id FROM images WHERE filename = ?",
-                    (image_path.name,)
+                    "SELECT id FROM images WHERE filename = ?", (image_path.name,)
                 )
 
                 if existing:
@@ -62,7 +61,7 @@ class ImageService:
                     INSERT INTO images (filename, filepath, width, height, thumbnail_path)
                     VALUES (?, ?, ?, ?, ?)
                     """,
-                    (image_path.name, str(image_path), width, height, thumbnail_path)
+                    (image_path.name, str(image_path), width, height, thumbnail_path),
                 )
 
                 result.added += 1
@@ -89,9 +88,7 @@ class ImageService:
             # Create thumbnail
             img.thumbnail(thumbnail_size, Image.Resampling.LANCZOS)
             img.convert("RGB").save(
-                thumbnail_path,
-                "JPEG",
-                quality=self.config.thumbnails.quality
+                thumbnail_path, "JPEG", quality=self.config.thumbnails.quality
             )
 
         return str(thumbnail_path)
@@ -119,17 +116,14 @@ class ImageService:
                 width=row["width"],
                 height=row["height"],
                 thumbnail_path=row["thumbnail_path"],
-                annotation_count=row["annotation_count"]
+                annotation_count=row["annotation_count"],
             )
             for row in rows
         ]
 
     def get_image(self, image_id: int) -> Optional[ImageResponse]:
         """Get image by ID."""
-        row = self.db.fetchone(
-            "SELECT * FROM images WHERE id = ?",
-            (image_id,)
-        )
+        row = self.db.fetchone("SELECT * FROM images WHERE id = ?", (image_id,))
 
         if not row:
             return None
@@ -141,15 +135,12 @@ class ImageService:
             width=row["width"],
             height=row["height"],
             thumbnail_path=row["thumbnail_path"],
-            created_at=row["created_at"]
+            created_at=row["created_at"],
         )
 
     def get_image_file_path(self, image_id: int) -> Optional[Path]:
         """Get file path for an image."""
-        row = self.db.fetchone(
-            "SELECT filepath FROM images WHERE id = ?",
-            (image_id,)
-        )
+        row = self.db.fetchone("SELECT filepath FROM images WHERE id = ?", (image_id,))
 
         if not row:
             return None
@@ -159,8 +150,7 @@ class ImageService:
     def get_thumbnail_path(self, image_id: int) -> Optional[Path]:
         """Get thumbnail path for an image."""
         row = self.db.fetchone(
-            "SELECT thumbnail_path FROM images WHERE id = ?",
-            (image_id,)
+            "SELECT thumbnail_path FROM images WHERE id = ?", (image_id,)
         )
 
         if not row or not row["thumbnail_path"]:

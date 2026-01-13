@@ -26,8 +26,8 @@ class AnnotationService:
                 annotation.uv_min_v,
                 annotation.uv_max_u,
                 annotation.uv_max_v,
-                annotation.color
-            )
+                annotation.color,
+            ),
         )
 
         annotation_id = cursor.lastrowid
@@ -36,8 +36,7 @@ class AnnotationService:
     def get_annotation(self, annotation_id: int) -> Optional[AnnotationResponse]:
         """Get annotation by ID."""
         row = self.db.fetchone(
-            "SELECT * FROM annotations WHERE id = ?",
-            (annotation_id,)
+            "SELECT * FROM annotations WHERE id = ?", (annotation_id,)
         )
 
         if not row:
@@ -53,14 +52,14 @@ class AnnotationService:
             uv_max_v=row["uv_max_v"],
             color=row["color"],
             created_at=row["created_at"],
-            updated_at=row["updated_at"]
+            updated_at=row["updated_at"],
         )
 
     def get_annotations_for_image(self, image_id: int) -> List[AnnotationResponse]:
         """Get all annotations for a specific image."""
         rows = self.db.fetchall(
             "SELECT * FROM annotations WHERE image_id = ? ORDER BY created_at",
-            (image_id,)
+            (image_id,),
         )
 
         return [
@@ -74,7 +73,7 @@ class AnnotationService:
                 uv_max_v=row["uv_max_v"],
                 color=row["color"],
                 created_at=row["created_at"],
-                updated_at=row["updated_at"]
+                updated_at=row["updated_at"],
             )
             for row in rows
         ]
@@ -96,15 +95,13 @@ class AnnotationService:
                 uv_max_v=row["uv_max_v"],
                 color=row["color"],
                 created_at=row["created_at"],
-                updated_at=row["updated_at"]
+                updated_at=row["updated_at"],
             )
             for row in rows
         ]
 
     def update_annotation(
-        self,
-        annotation_id: int,
-        update: AnnotationUpdate
+        self, annotation_id: int, update: AnnotationUpdate
     ) -> Optional[AnnotationResponse]:
         """Update an existing annotation."""
         # Get current annotation
@@ -156,8 +153,7 @@ class AnnotationService:
     def delete_annotation(self, annotation_id: int) -> bool:
         """Delete an annotation."""
         cursor = self.db.execute(
-            "DELETE FROM annotations WHERE id = ?",
-            (annotation_id,)
+            "DELETE FROM annotations WHERE id = ?", (annotation_id,)
         )
 
         return cursor.rowcount > 0
@@ -165,8 +161,7 @@ class AnnotationService:
     def delete_annotations_for_image(self, image_id: int) -> int:
         """Delete all annotations for a specific image. Returns count of deleted annotations."""
         cursor = self.db.execute(
-            "DELETE FROM annotations WHERE image_id = ?",
-            (image_id,)
+            "DELETE FROM annotations WHERE image_id = ?", (image_id,)
         )
 
         return cursor.rowcount

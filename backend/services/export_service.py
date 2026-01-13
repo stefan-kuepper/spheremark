@@ -47,11 +47,11 @@ class ExportService:
                 "year": datetime.now().year,
                 "date_created": datetime.now().isoformat(),
                 "coordinate_system": "spherical",
-                "contributor": "SphereMark"
+                "contributor": "SphereMark",
             },
             "images": [],
             "annotations": [],
-            "categories": []
+            "categories": [],
         }
 
         # Collect all unique labels
@@ -62,13 +62,15 @@ class ExportService:
 
         for img in images:
             # Add image to COCO
-            coco_output["images"].append({
-                "id": img.id,
-                "file_name": img.filename,
-                "width": img.width,
-                "height": img.height,
-                "projection": "equirectangular"
-            })
+            coco_output["images"].append(
+                {
+                    "id": img.id,
+                    "file_name": img.filename,
+                    "width": img.width,
+                    "height": img.height,
+                    "projection": "equirectangular",
+                }
+            )
 
             # Get annotations for this image
             annotations = self.annotation_service.get_annotations_for_image(img.id)
@@ -82,10 +84,7 @@ class ExportService:
 
                 # Convert UV to spherical
                 spherical = uv_bbox_to_spherical(
-                    ann.uv_min_u,
-                    ann.uv_min_v,
-                    ann.uv_max_u,
-                    ann.uv_max_v
+                    ann.uv_min_u, ann.uv_min_v, ann.uv_max_u, ann.uv_max_v
                 )
 
                 # Round values to specified precision
@@ -93,29 +92,29 @@ class ExportService:
                     spherical[key] = round(spherical[key], precision)
 
                 # Add annotation to COCO
-                coco_output["annotations"].append({
-                    "id": annotation_id_counter,
-                    "image_id": img.id,
-                    "category_id": label_to_id[label],
-                    "bbox_spherical": spherical,
-                    "bbox_uv": {
-                        "u_min": round(ann.uv_min_u, precision),
-                        "v_min": round(ann.uv_min_v, precision),
-                        "u_max": round(ann.uv_max_u, precision),
-                        "v_max": round(ann.uv_max_v, precision)
-                    },
-                    "color": ann.color
-                })
+                coco_output["annotations"].append(
+                    {
+                        "id": annotation_id_counter,
+                        "image_id": img.id,
+                        "category_id": label_to_id[label],
+                        "bbox_spherical": spherical,
+                        "bbox_uv": {
+                            "u_min": round(ann.uv_min_u, precision),
+                            "v_min": round(ann.uv_min_v, precision),
+                            "u_max": round(ann.uv_max_u, precision),
+                            "v_max": round(ann.uv_max_v, precision),
+                        },
+                        "color": ann.color,
+                    }
+                )
 
                 annotation_id_counter += 1
 
         # Add categories
         for label, cat_id in sorted(label_to_id.items(), key=lambda x: x[1]):
-            coco_output["categories"].append({
-                "id": cat_id,
-                "name": label,
-                "supercategory": "object"
-            })
+            coco_output["categories"].append(
+                {"id": cat_id, "name": label, "supercategory": "object"}
+            )
 
         return coco_output
 
@@ -149,10 +148,7 @@ class ExportService:
         label_to_id = {}
         next_class_id = 0
 
-        yolo_output = {
-            "files": {},
-            "classes": []
-        }
+        yolo_output = {"files": {}, "classes": []}
 
         for img in images:
             lines = []
@@ -171,14 +167,12 @@ class ExportService:
 
                 # Convert UV to spherical
                 spherical = uv_bbox_to_spherical(
-                    ann.uv_min_u,
-                    ann.uv_min_v,
-                    ann.uv_max_u,
-                    ann.uv_max_v
+                    ann.uv_min_u, ann.uv_min_v, ann.uv_max_u, ann.uv_max_v
                 )
 
                 # Calculate center and dimensions in spherical space
                 import math
+
                 phi_center = (spherical["phi_min"] + spherical["phi_max"]) / 2
                 theta_center = (spherical["theta_min"] + spherical["theta_max"]) / 2
                 phi_width = spherical["phi_max"] - spherical["phi_min"]
@@ -201,6 +195,8 @@ class ExportService:
             yolo_output["files"][img.filename] = "\n".join(lines) if lines else ""
 
         # Add class names in order
-        yolo_output["classes"] = [label for label, _ in sorted(label_to_id.items(), key=lambda x: x[1])]
+        yolo_output["classes"] = [
+            label for label, _ in sorted(label_to_id.items(), key=lambda x: x[1])
+        ]
 
         return yolo_output

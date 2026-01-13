@@ -40,28 +40,30 @@ class AnnotationBase(BaseModel):
     uv_max_v: float = Field(..., ge=0.0, le=1.0)
     color: Optional[str] = None
 
-    @field_validator('uv_max_u')
+    @field_validator("uv_max_u")
     @classmethod
     def validate_u_range(cls, v, info):
-        if 'uv_min_u' in info.data and v <= info.data['uv_min_u']:
-            raise ValueError('uv_max_u must be greater than uv_min_u')
+        if "uv_min_u" in info.data and v <= info.data["uv_min_u"]:
+            raise ValueError("uv_max_u must be greater than uv_min_u")
         return v
 
-    @field_validator('uv_max_v')
+    @field_validator("uv_max_v")
     @classmethod
     def validate_v_range(cls, v, info):
-        if 'uv_min_v' in info.data and v <= info.data['uv_min_v']:
-            raise ValueError('uv_max_v must be greater than uv_min_v')
+        if "uv_min_v" in info.data and v <= info.data["uv_min_v"]:
+            raise ValueError("uv_max_v must be greater than uv_min_v")
         return v
 
 
 class AnnotationCreateRequest(AnnotationBase):
     """Request model for creating annotations (no image_id needed in body)."""
+
     pass
 
 
 class AnnotationCreate(AnnotationBase):
     """Internal model with image_id for service layer."""
+
     image_id: int
 
 

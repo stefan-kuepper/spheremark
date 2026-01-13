@@ -16,7 +16,7 @@ def uv_to_spherical(u: float, v: float) -> Tuple[float, float]:
         - theta: Latitude [0, π]
     """
     phi = (u * 2 * math.pi) - math.pi  # U [0,1] → φ [-π, π]
-    theta = v * math.pi                 # V [0,1] → θ [0, π]
+    theta = v * math.pi  # V [0,1] → θ [0, π]
     return phi, theta
 
 
@@ -37,10 +37,7 @@ def spherical_to_uv(phi: float, theta: float) -> Tuple[float, float]:
 
 
 def uv_bbox_to_spherical(
-    uv_min_u: float,
-    uv_min_v: float,
-    uv_max_u: float,
-    uv_max_v: float
+    uv_min_u: float, uv_min_v: float, uv_max_u: float, uv_max_v: float
 ) -> dict:
     """
     Convert UV bounding box to spherical coordinates.
@@ -59,15 +56,12 @@ def uv_bbox_to_spherical(
         "phi_min": phi_min,
         "theta_min": theta_min,
         "phi_max": phi_max,
-        "theta_max": theta_max
+        "theta_max": theta_max,
     }
 
 
 def spherical_bbox_to_uv(
-    phi_min: float,
-    theta_min: float,
-    phi_max: float,
-    theta_max: float
+    phi_min: float, theta_min: float, phi_max: float, theta_max: float
 ) -> dict:
     """
     Convert spherical bounding box to UV coordinates.
@@ -86,5 +80,5 @@ def spherical_bbox_to_uv(
         "uv_min_u": uv_min_u,
         "uv_min_v": uv_min_v,
         "uv_max_u": uv_max_u,
-        "uv_max_v": uv_max_v
+        "uv_max_v": uv_max_v,
     }

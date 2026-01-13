@@ -71,7 +71,7 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
   const [resizeState, setResizeState] = useState<ResizeState>(initialResizeState);
   const [hoverState, setHoverState] = useState<HoverState>(initialHoverState);
   const [middleMousePressed, setMiddleMousePressedState] = useState(false);
-  const [controlsEnabled, setControlsEnabled] = useState(false);
+  const [controlsEnabled, setControlsEnabled] = useState(true);
 
   const startDraw = useCallback((uv: UVCoordinate) => {
     setDrawState({
@@ -112,7 +112,7 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
     const { startUV, currentUV } = drawState;
 
     setDrawState(initialDrawState);
-    setControlsEnabled(middleMousePressed);
+    setControlsEnabled(true);
 
     if (!startUV || !currentUV) return null;
 
@@ -131,12 +131,12 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
     }
 
     return { uvMin, uvMax };
-  }, [drawState, middleMousePressed]);
+  }, [drawState]);
 
   const cancelDraw = useCallback(() => {
     setDrawState(initialDrawState);
-    setControlsEnabled(middleMousePressed);
-  }, [middleMousePressed]);
+    setControlsEnabled(true);
+  }, []);
 
   const startResize = useCallback(
     (
@@ -199,15 +199,15 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
 
   const finishResize = useCallback(() => {
     setResizeState(initialResizeState);
-    setControlsEnabled(middleMousePressed);
-  }, [middleMousePressed]);
+    setControlsEnabled(true);
+  }, []);
 
   const cancelResize = useCallback((): { uvMin: UVCoordinate; uvMax: UVCoordinate } | null => {
     const original = resizeState.originalBox;
     setResizeState(initialResizeState);
-    setControlsEnabled(middleMousePressed);
+    setControlsEnabled(true);
     return original;
-  }, [resizeState.originalBox, middleMousePressed]);
+  }, [resizeState.originalBox]);
 
   const setMiddleMousePressed = useCallback((pressed: boolean) => {
     setMiddleMousePressedState(pressed);
@@ -217,12 +217,12 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
     setHoverState({ hoveredBoxId: boxId });
   }, []);
 
+  // Cancel drawing and resizing when middle mouse is pressed (to allow orbiting)
   useEffect(() => {
-    setControlsEnabled(middleMousePressed);
-    // Cancel drawing and resizing when middle mouse is pressed
     if (middleMousePressed) {
       setDrawState(initialDrawState);
       setResizeState(initialResizeState);
+      setControlsEnabled(true);
     }
   }, [middleMousePressed]);
 

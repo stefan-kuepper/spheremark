@@ -2,7 +2,6 @@
 
 import sqlite3
 import tempfile
-from pathlib import Path
 
 from backend.migrations.migration_manager import MigrationManager
 

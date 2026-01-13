@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from backend.config import load_config, get_config
+from backend.config import load_config
 from backend.database import init_database
 from backend.routes import images, annotations, export
 

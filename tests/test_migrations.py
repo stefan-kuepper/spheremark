@@ -1,19 +1,19 @@
-import pytest
 import sqlite3
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from backend.migrations.migration_manager import MigrationManager
 from tests.test_migration_helpers import (
-    create_test_database,
-    cleanup_test_database,
-    get_table_schema,
-    get_table_names,
-    table_exists,
-    index_exists,
     AddColumnMigration,
     CreateTableMigration,
+    cleanup_test_database,
+    create_test_database,
+    get_table_schema,
+    index_exists,
+    table_exists,
 )
 
 
@@ -741,7 +741,7 @@ class TestDatabaseMigrationIntegration:
                 MockManager.return_value = mock_manager
 
                 # Initialize database
-                db = Database(db_path)
+                _db = Database(db_path)
 
                 # Verify MigrationManager was called
                 MockManager.assert_called_once_with(db_path)
@@ -809,7 +809,7 @@ class TestDatabaseMigrationIntegration:
 
     def test_global_database_instance(self):
         """Test global database instance management."""
-        from backend.database import init_database, get_db
+        from backend.database import get_db, init_database
 
         db_path = create_test_database()
         try:

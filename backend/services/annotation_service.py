@@ -1,5 +1,4 @@
 from typing import Optional, List
-from datetime import datetime
 
 from backend.database import get_db
 from backend.models import AnnotationCreate, AnnotationUpdate, AnnotationResponse

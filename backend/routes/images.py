@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
-from pathlib import Path
 
 from backend.services.image_service import ImageService
 from backend.models import ImageListResponse, ImageResponse, ScanResult

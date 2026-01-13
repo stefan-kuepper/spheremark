@@ -1,6 +1,5 @@
-from typing import Optional, List, Dict, Any
+from typing import Optional, Dict, Any
 from datetime import datetime
-from collections import defaultdict
 
 from backend.database import get_db
 from backend.config import get_config

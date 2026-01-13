@@ -1,11 +1,11 @@
 from pathlib import Path
 from typing import Optional
-from PIL import Image
-import sqlite3
 
-from backend.database import get_db
+from PIL import Image
+
 from backend.config import get_config
-from backend.models import ImageCreate, ImageResponse, ImageListResponse, ScanResult
+from backend.database import get_db
+from backend.models import ImageListResponse, ImageResponse, ScanResult
 
 # Disable decompression bomb warning for large panoramic images
 Image.MAX_IMAGE_PIXELS = None
@@ -33,7 +33,7 @@ class ImageService:
             if not image_path.is_file():
                 continue
 
-            if not image_path.suffix.lower() in allowed_exts:
+            if image_path.suffix.lower() not in allowed_exts:
                 continue
 
             result.scanned += 1
@@ -56,7 +56,7 @@ class ImageService:
                 thumbnail_path = self._generate_thumbnail(image_path)
 
                 # Add to database
-                cursor = self.db.execute(
+                _cursor = self.db.execute(
                     """
                     INSERT INTO images (filename, filepath, width, height, thumbnail_path)
                     VALUES (?, ?, ?, ?, ?)

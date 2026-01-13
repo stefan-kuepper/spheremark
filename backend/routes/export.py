@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, Response
-from typing import Optional
 
 from backend.services.export_service import ExportService
 

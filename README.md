@@ -194,15 +194,17 @@ Navigate to `http://localhost:3000` in your browser
 
 5. **Workflow:**
    - Select an image from the browser
-   - Use toolbar to switch modes:
-     - **View Mode (👁️)**: Navigate the panorama
-     - **Draw Mode (✏️)**: Click and drag to create bounding boxes
-     - **Edit Mode (✋)**: Select and resize boxes
-   - Keyboard shortcuts:
-     - `ESC`: Switch to View mode
-     - `D`: Switch to Draw mode
-     - `E`: Switch to Edit mode
+   - **Controls:**
+     - **Middle mouse button**: Hold and drag to orbit/pan the view
+     - **Left click + drag** on empty space: Draw a new bounding box
+     - **Left click** on a box: Select the box
+     - **Hover** over a box: Shows resize handles at corners
+     - **Drag handles**: Resize the selected box
+     - **Mouse wheel**: Zoom in/out (adjusts field of view)
+   - **Keyboard shortcuts:**
+     - `ESC`: Cancel current drawing or resize operation
      - `Delete/Backspace`: Delete selected box
+     - `L`: Edit label of selected box
    - Annotations auto-save to the database
    - Use side panel to view, focus, and delete boxes
 

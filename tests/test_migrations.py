@@ -718,6 +718,16 @@ class TestMigrationUpDownOperations:
 class TestDatabaseMigrationIntegration:
     """Tests for database integration with migrations."""
 
+    @pytest.fixture
+    def reset_db_instance(self):
+        """Reset global database instance for testing."""
+        import backend.database
+
+        original = backend.database._db
+        backend.database._db = None
+        yield
+        backend.database._db = original
+
     def test_database_init_applies_migrations(self):
         """Test that Database initialization applies migrations."""
         from backend.database import Database
@@ -821,14 +831,9 @@ class TestDatabaseMigrationIntegration:
         finally:
             cleanup_test_database(db_path)
 
-    def test_database_not_initialized_error(self):
+    def test_database_not_initialized_error(self, reset_db_instance):
         """Test error when database is not initialized."""
         from backend.database import get_db
-
-        # Reset global instance
-        import backend.database
-
-        backend.database._db = None
 
         # Should raise RuntimeError
         with pytest.raises(RuntimeError, match="Database not initialized"):

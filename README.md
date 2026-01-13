@@ -192,8 +192,12 @@ npm run dev
 4. **Open the application:**
 Navigate to `http://localhost:3000` in your browser
 
-5. **Workflow:**
-   - Select an image from the browser
+5. **URL Routing:**
+   - `/` - Image browser (list of all images)
+   - `/image/:id` - Direct link to edit a specific image (e.g., `/image/1`)
+
+6. **Workflow:**
+   - Select an image from the browser (or navigate directly via URL)
    - **Controls:**
      - **Middle mouse button**: Hold and drag to orbit/pan the view
      - **Left click + drag** on empty space: Draw a new bounding box
@@ -254,7 +258,8 @@ spheremark/
 │   │   │   │   ├── BoxItem.tsx
 │   │   │   │   └── LabelEditor.tsx
 │   │   │   ├── viewer/               # Panorama viewer components
-│   │   │   │   └── PanoramaViewer.tsx
+│   │   │   │   ├── PanoramaViewer.tsx
+│   │   │   │   └── ImageViewer.tsx   # URL routing wrapper
 │   │   │   └── dialogs/              # Dialog components
 │   │   │       └── ExportDialog.tsx
 │   │   ├── contexts/                 # React contexts

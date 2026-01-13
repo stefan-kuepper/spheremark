@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { useImages } from '../../hooks';
+import { useNavigate } from 'react-router-dom';
 
 interface ToolbarProps {
   onExportClick: () => void;
 }
 
 export function Toolbar({ onExportClick }: ToolbarProps) {
-  const { clearImage } = useImages();
+  const navigate = useNavigate();
   const [panelVisible, setPanelVisible] = useState(true);
 
   const handleTogglePanel = () => {
@@ -23,7 +23,7 @@ export function Toolbar({ onExportClick }: ToolbarProps) {
 
       <button
         className="icon-button"
-        onClick={clearImage}
+        onClick={() => navigate('/')}
         title="Back to Image Browser"
       >
         <span>&#x2b05;&#xfe0f;</span>

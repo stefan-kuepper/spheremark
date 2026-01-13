@@ -1,15 +1,28 @@
 import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useImages } from '../../hooks';
+import { useImages, useProjects } from '../../hooks';
 import { PanoramaViewer } from './PanoramaViewer';
 
 export function ImageViewer() {
-  const { id } = useParams<{ id: string }>();
+  const { projectId, imageId: imageIdParam } = useParams<{
+    projectId: string;
+    imageId: string;
+  }>();
+  const { selectProject } = useProjects();
   const { images, isLoading, selectImage } = useImages();
 
-  const imageId = id ? parseInt(id, 10) : null;
+  const projectIdNum = projectId ? parseInt(projectId, 10) : null;
+  const imageId = imageIdParam ? parseInt(imageIdParam, 10) : null;
   const imageExists = imageId !== null && images.some((img) => img.id === imageId);
 
+  // Select project from route param
+  useEffect(() => {
+    if (projectIdNum !== null) {
+      selectProject(projectIdNum);
+    }
+  }, [projectIdNum, selectProject]);
+
+  // Select image from route param
   useEffect(() => {
     if (imageId !== null && imageExists) {
       selectImage(imageId);
@@ -25,7 +38,9 @@ export function ImageViewer() {
       <div className="error-page">
         <h2>Image not found</h2>
         <p>The requested image does not exist.</p>
-        <Link to="/">Back to Image Browser</Link>
+        <Link to={projectIdNum ? `/projects/${projectIdNum}` : '/'}>
+          Back to Image Browser
+        </Link>
       </div>
     );
   }

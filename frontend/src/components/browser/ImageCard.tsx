@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useImages } from '../../hooks';
+import { useImages, useProjects } from '../../hooks';
 
 interface ImageCardProps {
   id: number;
@@ -8,11 +8,13 @@ interface ImageCardProps {
 }
 
 export function ImageCard({ id, filename, annotationCount }: ImageCardProps) {
-  const { getThumbnailUrl } = useImages();
+  const { getThumbnailUrl, selectImage } = useImages();
+  const { currentProjectId } = useProjects();
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/image/${id}`);
+    selectImage(id);
+    navigate(`/projects/${currentProjectId}/images/${id}`);
   };
 
   return (

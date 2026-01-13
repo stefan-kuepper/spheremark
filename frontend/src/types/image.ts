@@ -1,5 +1,6 @@
 export interface ImageData {
   id: number;
+  project_id: number;
   filename: string;
   path: string;
   width: number;
@@ -9,6 +10,8 @@ export interface ImageData {
 }
 
 export interface ScanResult {
-  new_images: number;
-  total_images: number;
+  scanned: number;
+  added: number;
+  skipped: number;
+  errors: string[];
 }

@@ -3,7 +3,7 @@ server:
   port: 8000
 
 images:
-  remote_path: "./data"
+  # Note: remote_path is now per-project, stored in the database
   allowed_extensions: [".jpg", ".jpeg", ".png"]
 
 thumbnails:

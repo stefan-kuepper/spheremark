@@ -6,7 +6,8 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import { images as imagesApi } from '../api';
+import { projects as projectsApi } from '../api';
+import { useProjects } from './ProjectContext';
 import type { ImageData } from '../types';
 
 interface ImageContextValue {
@@ -18,7 +19,7 @@ interface ImageContextValue {
   error: string | null;
   loadImages: () => Promise<void>;
   scanImages: () => Promise<void>;
-  selectImage: (imageId: number) => void;
+  selectImage: (imageId: number | null) => void;
   clearImage: () => void;
   getImageFileUrl: (imageId: number) => string;
   getThumbnailUrl: (imageId: number) => string;
@@ -31,6 +32,7 @@ interface ImageProviderProps {
 }
 
 export function ImageProvider({ children }: ImageProviderProps) {
+  const { currentProjectId } = useProjects();
   const [images, setImages] = useState<ImageData[]>([]);
   const [currentImageId, setCurrentImageId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,10 +44,14 @@ export function ImageProvider({ children }: ImageProviderProps) {
     : null;
 
   const loadImages = useCallback(async () => {
+    if (!currentProjectId) {
+      setImages([]);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
-      const data = await imagesApi.list();
+      const data = await projectsApi.listImages(currentProjectId);
       setImages(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load images');
@@ -53,13 +59,14 @@ export function ImageProvider({ children }: ImageProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentProjectId]);
 
   const scanImages = useCallback(async () => {
+    if (!currentProjectId) return;
     setIsScanning(true);
     setError(null);
     try {
-      await imagesApi.scan();
+      await projectsApi.scanImages(currentProjectId);
       await loadImages();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to scan images');
@@ -67,9 +74,9 @@ export function ImageProvider({ children }: ImageProviderProps) {
     } finally {
       setIsScanning(false);
     }
-  }, [loadImages]);
+  }, [currentProjectId, loadImages]);
 
-  const selectImage = useCallback((imageId: number) => {
+  const selectImage = useCallback((imageId: number | null) => {
     setCurrentImageId(imageId);
   }, []);
 
@@ -78,16 +85,19 @@ export function ImageProvider({ children }: ImageProviderProps) {
   }, []);
 
   const getImageFileUrl = useCallback((imageId: number) => {
-    return imagesApi.getFileUrl(imageId);
-  }, []);
+    if (!currentProjectId) return '';
+    return projectsApi.getImageFileUrl(currentProjectId, imageId);
+  }, [currentProjectId]);
 
   const getThumbnailUrl = useCallback((imageId: number) => {
-    return imagesApi.getThumbnailUrl(imageId);
-  }, []);
+    if (!currentProjectId) return '';
+    return projectsApi.getThumbnailUrl(currentProjectId, imageId);
+  }, [currentProjectId]);
 
-  // Load images on mount
+  // Load images when project changes
   useEffect(() => {
     loadImages();
+    setCurrentImageId(null); // Clear selected image when project changes
   }, [loadImages]);
 
   const value: ImageContextValue = {

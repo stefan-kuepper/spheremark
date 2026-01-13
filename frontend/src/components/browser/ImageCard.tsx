@@ -4,13 +4,14 @@ interface ImageCardProps {
   id: number;
   filename: string;
   annotationCount: number;
+  onSelect?: (imageId: number) => void;
 }
 
-export function ImageCard({ id, filename, annotationCount }: ImageCardProps) {
-  const { selectImage, getThumbnailUrl } = useImages();
+export function ImageCard({ id, filename, annotationCount, onSelect }: ImageCardProps) {
+  const { getThumbnailUrl } = useImages();
 
   const handleClick = () => {
-    selectImage(id);
+    onSelect?.(id);
   };
 
   return (

@@ -3,9 +3,10 @@ import type { ImageData } from '../../types';
 
 interface ImageGridProps {
   images: ImageData[];
+  onImageSelect?: (imageId: number) => void;
 }
 
-export function ImageGrid({ images }: ImageGridProps) {
+export function ImageGrid({ images, onImageSelect }: ImageGridProps) {
   if (images.length === 0) {
     return (
       <div id="empty-state" className="browser-empty">
@@ -25,6 +26,7 @@ export function ImageGrid({ images }: ImageGridProps) {
           id={image.id}
           filename={image.filename}
           annotationCount={image.annotation_count}
+          onSelect={onImageSelect}
         />
       ))}
     </div>

@@ -2,7 +2,6 @@ import { useRef, useEffect } from 'react';
 import { useLoader } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useImages, useInteraction } from '../hooks';
-import { InteractionMode } from '../types';
 import type { ThreeEvent } from '@react-three/fiber';
 import type { UVCoordinate } from '../types';
 
@@ -18,7 +17,7 @@ export function PanoramaSphere({
   onPointerUp,
 }: PanoramaSphereProps) {
   const { currentImageId, getImageFileUrl } = useImages();
-  const { mode, drawState, resizeState } = useInteraction();
+  const { drawState, resizeState, middleMousePressed } = useInteraction();
   const meshRef = useRef<THREE.Mesh>(null);
 
   const textureUrl = currentImageId ? getImageFileUrl(currentImageId) : null;
@@ -48,20 +47,24 @@ export function PanoramaSphere({
   };
 
   const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
-    if (mode === InteractionMode.VIEW) return;
+    // Only handle left mouse clicks (button 0)
+    if (event.button !== 0) return;
+    // Ignore if middle mouse is pressed (orbiting)
+    if (middleMousePressed) return;
     event.stopPropagation();
     const uv = getUVFromEvent(event);
     if (uv) onPointerDown?.(uv);
   };
 
   const handlePointerMove = (event: ThreeEvent<PointerEvent>) => {
-    if (!drawState.isDrawing && !resizeState.isResizing) return;
     event.stopPropagation();
     const uv = getUVFromEvent(event);
     if (uv) onPointerMove?.(uv);
   };
 
   const handlePointerUp = (event: ThreeEvent<PointerEvent>) => {
+    // Only handle left mouse button
+    if (event.button !== 0) return;
     if (!drawState.isDrawing && !resizeState.isResizing) return;
     event.stopPropagation();
     const uv = getUVFromEvent(event);

@@ -10,7 +10,7 @@ class ServerConfig(BaseModel):
 
 
 class ImagesConfig(BaseModel):
-    remote_path: str
+    # Note: remote_path is now per-project, stored in database
     allowed_extensions: list[str] = [".jpg", ".jpeg", ".png"]
 
 

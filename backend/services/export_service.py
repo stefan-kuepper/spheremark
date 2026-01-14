@@ -1,11 +1,11 @@
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, Optional
 
-from backend.database import get_db
 from backend.config import get_config
-from backend.utils.coordinates import uv_bbox_to_spherical
+from backend.database import get_db
 from backend.services.annotation_service import AnnotationService
 from backend.services.image_service import ImageService
+from backend.utils.coordinates import uv_bbox_to_spherical
 
 
 class ExportService:
@@ -17,11 +17,34 @@ class ExportService:
         self.annotation_service = AnnotationService()
         self.image_service = ImageService()
 
-    def export_coco(self, image_id: Optional[int] = None) -> dict:
+    def _get_project_info(self, project_id: int) -> Optional[dict]:
+        """Get project info for export metadata."""
+        row = self.db.fetchone(
+            "SELECT name, description FROM projects WHERE id = ?", (project_id,)
+        )
+        if not row:
+            return None
+        return {"name": row["name"], "description": row["description"]}
+
+    def _get_label_schema_mapping(self, project_id: int) -> dict[str, int]:
+        """Get label to category ID mapping from project's label schema."""
+        rows = self.db.fetchall(
+            """
+            SELECT label_name, id FROM label_schemas
+            WHERE project_id = ?
+            ORDER BY sort_order, label_name
+            """,
+            (project_id,),
+        )
+        # Use schema IDs as category IDs for consistency
+        return {row["label_name"]: row["id"] for row in rows}
+
+    def export_coco(self, project_id: int, image_id: Optional[int] = None) -> dict:
         """
         Export annotations in COCO format with spherical coordinates.
 
         Args:
+            project_id: Project ID to export
             image_id: Optional image ID to export only one image
 
         Returns:
@@ -29,19 +52,31 @@ class ExportService:
         """
         precision = self.config.export.coordinate_precision
 
+        # Get project info
+        project_info = self._get_project_info(project_id)
+        if not project_info:
+            raise ValueError(f"Project {project_id} not found")
+
         # Get images
         if image_id:
             image = self.image_service.get_image(image_id)
             if not image:
                 raise ValueError(f"Image {image_id} not found")
+            if image.project_id != project_id:
+                raise ValueError(f"Image {image_id} not in project {project_id}")
             images = [image]
         else:
-            images = self.image_service.list_images()
+            images = self.image_service.list_images(project_id)
+
+        # Get label schema for consistent category IDs
+        label_schema = self._get_label_schema_mapping(project_id)
 
         # Build COCO structure
         coco_output = {
             "info": {
-                "description": "SphereMark - Panoramic Image Annotations",
+                "description": f"SphereMark - {project_info['name']}",
+                "project_name": project_info["name"],
+                "project_description": project_info["description"],
                 "version": "1.0",
                 "year": datetime.now().year,
                 "date_created": datetime.now().isoformat(),
@@ -53,9 +88,9 @@ class ExportService:
             "categories": [],
         }
 
-        # Collect all unique labels
-        label_to_id = {}
-        next_category_id = 1
+        # Track labels used (for categories not in schema)
+        label_to_id = dict(label_schema)
+        next_category_id = max(label_to_id.values(), default=0) + 1
 
         annotation_id_counter = 1
 
@@ -109,7 +144,7 @@ class ExportService:
 
                 annotation_id_counter += 1
 
-        # Add categories
+        # Add categories (schema labels first, then any additional)
         for label, cat_id in sorted(label_to_id.items(), key=lambda x: x[1]):
             coco_output["categories"].append(
                 {"id": cat_id, "name": label, "supercategory": "object"}
@@ -117,7 +152,9 @@ class ExportService:
 
         return coco_output
 
-    def export_yolo(self, image_id: Optional[int] = None) -> Dict[str, Any]:
+    def export_yolo(
+        self, project_id: int, image_id: Optional[int] = None
+    ) -> Dict[str, Any]:
         """
         Export annotations in YOLO format with spherical coordinates.
 
@@ -127,27 +164,42 @@ class ExportService:
         All values normalized to [0, 1] range.
 
         Args:
+            project_id: Project ID to export
             image_id: Optional image ID to export only one image
 
         Returns:
             Dictionary with 'files' (image_name -> annotation lines) and 'classes' (class names)
         """
+        import math
+
         precision = self.config.export.coordinate_precision
+
+        # Verify project exists
+        project_info = self._get_project_info(project_id)
+        if not project_info:
+            raise ValueError(f"Project {project_id} not found")
 
         # Get images
         if image_id:
             image = self.image_service.get_image(image_id)
             if not image:
                 raise ValueError(f"Image {image_id} not found")
+            if image.project_id != project_id:
+                raise ValueError(f"Image {image_id} not in project {project_id}")
             images = [image]
         else:
-            images = self.image_service.list_images()
+            images = self.image_service.list_images(project_id)
 
-        # Collect all unique labels
-        label_to_id = {}
-        next_class_id = 0
+        # Get label schema for consistent class IDs
+        label_schema = self._get_label_schema_mapping(project_id)
 
-        yolo_output = {"files": {}, "classes": []}
+        # Track labels (use 0-indexed for YOLO)
+        # Re-index schema labels starting from 0
+        schema_labels = list(label_schema.keys())
+        label_to_id = {label: idx for idx, label in enumerate(schema_labels)}
+        next_class_id = len(label_to_id)
+
+        yolo_output = {"files": {}, "classes": [], "project_name": project_info["name"]}
 
         for img in images:
             lines = []
@@ -170,8 +222,6 @@ class ExportService:
                 )
 
                 # Calculate center and dimensions in spherical space
-                import math
-
                 phi_center = (spherical["phi_min"] + spherical["phi_max"]) / 2
                 theta_center = (spherical["theta_min"] + spherical["theta_max"]) / 2
                 phi_width = spherical["phi_max"] - spherical["phi_min"]

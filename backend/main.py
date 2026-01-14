@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from backend.config import load_config
 from backend.database import init_database
-from backend.routes import images, annotations, export
+from backend.routes import images, annotations, export, projects
 
 
 @asynccontextmanager
@@ -39,9 +39,10 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(images.router)
+app.include_router(projects.router)  # New project-scoped routes
+app.include_router(images.router)  # Legacy routes (deprecated)
 app.include_router(annotations.router)
-app.include_router(export.router)
+app.include_router(export.router)  # Legacy routes (deprecated)
 
 
 @app.get("/")

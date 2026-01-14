@@ -1,14 +1,38 @@
-import { useImages } from '../../hooks';
+import { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useImages, useProjects } from '../../hooks';
 import { ImageGrid } from './ImageGrid';
 
 export function ImageBrowser() {
-  const { images, isLoading, isScanning, error, scanImages, loadImages } = useImages();
+  const navigate = useNavigate();
+  const { projectId } = useParams<{ projectId: string }>();
+  const { currentProject, selectProject, clearProject } = useProjects();
+  const { images, isLoading, isScanning, error, scanImages, loadImages, lastScanResult } =
+    useImages();
+
+  // Select project from route param
+  useEffect(() => {
+    if (projectId) {
+      selectProject(parseInt(projectId, 10));
+    }
+  }, [projectId, selectProject]);
+
+  const handleBack = () => {
+    clearProject();
+    navigate('/');
+  };
 
   return (
     <div id="image-browser">
       <div className="browser-header">
-        <h1>SphereMark</h1>
-        <p>Select a panoramic image to label</p>
+        <button className="btn btn-back" onClick={handleBack}>
+          &larr; Back to Projects
+        </button>
+        <h1>{currentProject?.name || 'Loading...'}</h1>
+        {currentProject?.description && <p>{currentProject.description}</p>}
+        {!currentProject?.description && (
+          <p>Select a panoramic image to label</p>
+        )}
         <div className="browser-actions">
           <button
             className="btn btn-primary"
@@ -18,6 +42,12 @@ export function ImageBrowser() {
             <span>&#x1f504;</span> {isScanning ? 'Scanning...' : 'Scan for Images'}
           </button>
         </div>
+        {lastScanResult && (
+          <p className="scan-result">
+            Found {lastScanResult.added} new image{lastScanResult.added !== 1 ? 's' : ''}{' '}
+            ({lastScanResult.skipped} already imported)
+          </p>
+        )}
       </div>
 
       {isLoading && (

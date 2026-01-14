@@ -785,10 +785,19 @@ class TestDatabaseMigrationIntegration:
         try:
             db = Database(db_path)
 
-            # Test execute method
+            # First create a project (required for images)
             cursor = db.execute(
-                "INSERT INTO images (filename, filepath, width, height) VALUES (?, ?, ?, ?)",
-                ("test.jpg", "/path/test.jpg", 100, 100),
+                "INSERT INTO projects (name, images_path) VALUES (?, ?)",
+                ("Test Project", "/path/to/images"),
+            )
+            project_id = cursor.lastrowid
+            assert project_id is not None
+
+            # Test execute method with image (now requires project_id)
+            cursor = db.execute(
+                "INSERT INTO images (project_id, filename, filepath, width, height) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (project_id, "test.jpg", "/path/test.jpg", 100, 100),
             )
 
             # Verify insertion
@@ -799,6 +808,7 @@ class TestDatabaseMigrationIntegration:
             assert row is not None
             assert row["filename"] == "test.jpg"
             assert row["width"] == 100
+            assert row["project_id"] == project_id
 
             rows = db.fetchall("SELECT * FROM images")
             assert len(rows) == 1

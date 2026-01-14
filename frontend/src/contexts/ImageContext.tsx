@@ -6,8 +6,9 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import { images as imagesApi } from '../api';
-import type { ImageData } from '../types';
+import { projects as projectsApi } from '../api';
+import { useProjects } from './ProjectContext';
+import type { ImageData, ScanResult } from '../types';
 
 interface ImageContextValue {
   images: ImageData[];
@@ -16,8 +17,9 @@ interface ImageContextValue {
   isLoading: boolean;
   isScanning: boolean;
   error: string | null;
+  lastScanResult: ScanResult | null;
   loadImages: () => Promise<void>;
-  scanImages: () => Promise<void>;
+  scanImages: () => Promise<ScanResult | null>;
   selectImage: (imageId: number) => void;
   clearImage: () => void;
   getImageFileUrl: (imageId: number) => string;
@@ -31,21 +33,29 @@ interface ImageProviderProps {
 }
 
 export function ImageProvider({ children }: ImageProviderProps) {
+  const { currentProjectId } = useProjects();
+
   const [images, setImages] = useState<ImageData[]>([]);
   const [currentImageId, setCurrentImageId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastScanResult, setLastScanResult] = useState<ScanResult | null>(null);
 
   const currentImage = currentImageId
     ? images.find((img) => img.id === currentImageId) ?? null
     : null;
 
   const loadImages = useCallback(async () => {
+    if (!currentProjectId) {
+      setImages([]);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
-      const data = await imagesApi.list();
+      const data = await projectsApi.listImages(currentProjectId);
       setImages(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load images');
@@ -53,21 +63,28 @@ export function ImageProvider({ children }: ImageProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentProjectId]);
 
-  const scanImages = useCallback(async () => {
+  const scanImages = useCallback(async (): Promise<ScanResult | null> => {
+    if (!currentProjectId) {
+      return null;
+    }
+
     setIsScanning(true);
     setError(null);
     try {
-      await imagesApi.scan();
+      const result = await projectsApi.scanImages(currentProjectId);
+      setLastScanResult(result);
       await loadImages();
+      return result;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to scan images');
       console.error('Failed to scan images:', err);
+      return null;
     } finally {
       setIsScanning(false);
     }
-  }, [loadImages]);
+  }, [currentProjectId, loadImages]);
 
   const selectImage = useCallback((imageId: number) => {
     setCurrentImageId(imageId);
@@ -77,18 +94,32 @@ export function ImageProvider({ children }: ImageProviderProps) {
     setCurrentImageId(null);
   }, []);
 
-  const getImageFileUrl = useCallback((imageId: number) => {
-    return imagesApi.getFileUrl(imageId);
-  }, []);
+  const getImageFileUrl = useCallback(
+    (imageId: number) => {
+      if (!currentProjectId) return '';
+      return projectsApi.getImageFileUrl(currentProjectId, imageId);
+    },
+    [currentProjectId]
+  );
 
-  const getThumbnailUrl = useCallback((imageId: number) => {
-    return imagesApi.getThumbnailUrl(imageId);
-  }, []);
+  const getThumbnailUrl = useCallback(
+    (imageId: number) => {
+      if (!currentProjectId) return '';
+      return projectsApi.getThumbnailUrl(currentProjectId, imageId);
+    },
+    [currentProjectId]
+  );
 
-  // Load images on mount
+  // Load images when project changes
   useEffect(() => {
-    loadImages();
-  }, [loadImages]);
+    if (currentProjectId) {
+      loadImages();
+    } else {
+      setImages([]);
+      setCurrentImageId(null);
+      setLastScanResult(null);
+    }
+  }, [currentProjectId, loadImages]);
 
   const value: ImageContextValue = {
     images,
@@ -97,6 +128,7 @@ export function ImageProvider({ children }: ImageProviderProps) {
     isLoading,
     isScanning,
     error,
+    lastScanResult,
     loadImages,
     scanImages,
     selectImage,

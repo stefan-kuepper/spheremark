@@ -89,13 +89,23 @@ def test_migration_can_insert_and_query_data():
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
 
-            # Insert test image
+            # First create a project (required for images)
             cursor.execute(
                 """
-                INSERT INTO images (filename, filepath, width, height, thumbnail_path)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO projects (name, description, images_path)
+                VALUES (?, ?, ?)
             """,
-                ("test.jpg", "/path/test.jpg", 800, 600, "/thumb/test.jpg"),
+                ("Test Project", "Test description", "/path/to/images"),
+            )
+            project_id = cursor.lastrowid
+
+            # Insert test image (now requires project_id)
+            cursor.execute(
+                """
+                INSERT INTO images (project_id, filename, filepath, width, height, thumbnail_path)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """,
+                (project_id, "test.jpg", "/path/test.jpg", 800, 600, "/thumb/test.jpg"),
             )
             image_id = cursor.lastrowid
 
@@ -118,6 +128,7 @@ def test_migration_can_insert_and_query_data():
             assert image_row["filename"] == "test.jpg"
             assert image_row["width"] == 800
             assert image_row["height"] == 600
+            assert image_row["project_id"] == project_id
 
             cursor.execute("SELECT * FROM annotations WHERE id = ?", (annotation_id,))
             annotation_row = cursor.fetchone()

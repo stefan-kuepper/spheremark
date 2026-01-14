@@ -18,11 +18,20 @@ class ImageService:
         self.db = get_db()
         self.config = get_config()
 
-    def scan_images(self) -> ScanResult:
-        """Scan remote directory for new images and add to database."""
+    def scan_images(self, project_id: int) -> ScanResult:
+        """Scan project's image directory for new images and add to database."""
         result = ScanResult(scanned=0, added=0, skipped=0, errors=[])
 
-        remote_path = Path(self.config.images.remote_path)
+        # Get project's images_path
+        project = self.db.fetchone(
+            "SELECT images_path FROM projects WHERE id = ?", (project_id,)
+        )
+
+        if not project:
+            result.errors.append(f"Project {project_id} not found")
+            return result
+
+        remote_path = Path(project["images_path"])
         if not remote_path.exists():
             result.errors.append(f"Remote path does not exist: {remote_path}")
             return result
@@ -39,9 +48,10 @@ class ImageService:
             result.scanned += 1
 
             try:
-                # Check if already in database
+                # Check if already in database for this project
                 existing = self.db.fetchone(
-                    "SELECT id FROM images WHERE filename = ?", (image_path.name,)
+                    "SELECT id FROM images WHERE project_id = ? AND filename = ?",
+                    (project_id, image_path.name),
                 )
 
                 if existing:
@@ -53,15 +63,22 @@ class ImageService:
                     width, height = img.size
 
                 # Generate thumbnail
-                thumbnail_path = self._generate_thumbnail(image_path)
+                thumbnail_path = self._generate_thumbnail(image_path, project_id)
 
                 # Add to database
-                _cursor = self.db.execute(
+                self.db.execute(
                     """
-                    INSERT INTO images (filename, filepath, width, height, thumbnail_path)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO images (project_id, filename, filepath, width, height, thumbnail_path)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     """,
-                    (image_path.name, str(image_path), width, height, thumbnail_path),
+                    (
+                        project_id,
+                        image_path.name,
+                        str(image_path),
+                        width,
+                        height,
+                        thumbnail_path,
+                    ),
                 )
 
                 result.added += 1
@@ -71,9 +88,10 @@ class ImageService:
 
         return result
 
-    def _generate_thumbnail(self, image_path: Path) -> str:
+    def _generate_thumbnail(self, image_path: Path, project_id: int) -> str:
         """Generate thumbnail for an image."""
-        thumbnails_dir = Path("data/thumbnails")
+        # Use project-specific thumbnail directory
+        thumbnails_dir = Path(f"data/thumbnails/project_{project_id}")
         thumbnails_dir.mkdir(parents=True, exist_ok=True)
 
         thumbnail_filename = f"thumb_{image_path.stem}.jpg"
@@ -93,11 +111,13 @@ class ImageService:
 
         return str(thumbnail_path)
 
-    def list_images(self) -> list[ImageListResponse]:
-        """List all images with annotation counts."""
-        rows = self.db.fetchall("""
+    def list_images(self, project_id: int) -> list[ImageListResponse]:
+        """List all images in a project with annotation counts."""
+        rows = self.db.fetchall(
+            """
             SELECT
                 i.id,
+                i.project_id,
                 i.filename,
                 i.width,
                 i.height,
@@ -105,13 +125,17 @@ class ImageService:
                 COUNT(a.id) as annotation_count
             FROM images i
             LEFT JOIN annotations a ON i.id = a.image_id
+            WHERE i.project_id = ?
             GROUP BY i.id
             ORDER BY i.created_at DESC
-        """)
+            """,
+            (project_id,),
+        )
 
         return [
             ImageListResponse(
                 id=row["id"],
+                project_id=row["project_id"],
                 filename=row["filename"],
                 width=row["width"],
                 height=row["height"],
@@ -130,6 +154,7 @@ class ImageService:
 
         return ImageResponse(
             id=row["id"],
+            project_id=row["project_id"],
             filename=row["filename"],
             filepath=row["filepath"],
             width=row["width"],
@@ -137,6 +162,14 @@ class ImageService:
             thumbnail_path=row["thumbnail_path"],
             created_at=row["created_at"],
         )
+
+    def validate_image_in_project(self, project_id: int, image_id: int) -> bool:
+        """Validate that an image belongs to a project."""
+        row = self.db.fetchone(
+            "SELECT id FROM images WHERE id = ? AND project_id = ?",
+            (image_id, project_id),
+        )
+        return row is not None
 
     def get_image_file_path(self, image_id: int) -> Optional[Path]:
         """Get file path for an image."""

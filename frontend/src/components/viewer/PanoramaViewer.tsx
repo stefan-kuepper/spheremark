@@ -9,6 +9,7 @@ import { DrawPreview } from '../../viewer/DrawPreview';
 import { useAnnotations, useInteraction, useKeyboardShortcuts } from '../../hooks';
 import { Toolbar } from '../layout/Toolbar';
 import { SidePanel } from '../layout/SidePanel';
+import { ImageSidebar } from '../layout/ImageSidebar';
 import { ModeIndicator } from '../layout/ModeIndicator';
 import { SaveStatus } from '../layout/SaveStatus';
 import { ExportDialog } from '../dialogs/ExportDialog';
@@ -269,6 +270,7 @@ export function PanoramaViewer() {
         </Canvas>
       </div>
 
+      <ImageSidebar />
       <Toolbar onExportClick={() => setExportDialogOpen(true)} />
       <SidePanel onFocusBox={handleFocusBox} />
       <ModeIndicator />

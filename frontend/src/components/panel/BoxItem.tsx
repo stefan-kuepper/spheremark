@@ -1,6 +1,9 @@
 import { useState } from 'react';
+import { Focus, Pencil, Trash2 } from 'lucide-react';
 import { useAnnotations } from '../../hooks';
 import { LabelEditor } from './LabelEditor';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import type { BoundingBox } from '../../types';
 
 interface BoxItemProps {
@@ -47,19 +50,26 @@ export function BoxItem({ box, isSelected, suggestions, onFocus }: BoxItemProps)
 
   return (
     <div
-      className={`box-item ${isSelected ? 'selected' : ''}`}
+      className={cn(
+        'p-4 border-b border-border cursor-pointer transition-colors border-l-4',
+        isSelected
+          ? 'bg-primary/10 border-l-primary'
+          : 'border-l-transparent hover:bg-primary/5'
+      )}
       onClick={handleClick}
-      style={{ borderLeftColor: box.color }}
+      style={{ borderLeftColor: isSelected ? undefined : box.color }}
     >
-      <div className="box-header">
+      <div className="flex items-center gap-2 mb-2">
         <span
-          className="box-color"
+          className="w-3 h-3 rounded-sm flex-shrink-0"
           style={{ backgroundColor: box.color }}
-        ></span>
-        <span className="box-id">Box #{box.id}</span>
+        />
+        <span className="font-semibold text-sm text-card-foreground">
+          Box #{box.id}
+        </span>
       </div>
 
-      <div className="box-label">
+      <div className="mb-2">
         {isEditingLabel ? (
           <LabelEditor
             value={box.label}
@@ -69,7 +79,10 @@ export function BoxItem({ box, isSelected, suggestions, onFocus }: BoxItemProps)
           />
         ) : (
           <span
-            className="label-text"
+            className={cn(
+              'inline-block px-2 py-1 bg-muted rounded text-sm cursor-pointer border border-transparent hover:bg-muted/80 min-w-[120px]',
+              !box.label && 'text-muted-foreground italic'
+            )}
             onClick={handleEditLabel}
             title="Click to edit label"
           >
@@ -78,38 +91,42 @@ export function BoxItem({ box, isSelected, suggestions, onFocus }: BoxItemProps)
         )}
       </div>
 
-      <div className="box-coords">
-        <span>
+      <div className="text-xs text-muted-foreground space-y-1">
+        <div>
           UV: ({box.uvMin.u.toFixed(3)}, {box.uvMin.v.toFixed(3)}) - (
           {box.uvMax.u.toFixed(3)}, {box.uvMax.v.toFixed(3)})
-        </span>
-        <span>
-          Size: {width}% x {height}%
-        </span>
+        </div>
+        <div>Size: {width}% x {height}%</div>
       </div>
 
-      <div className="box-actions">
-        <button
-          className="btn btn-small"
+      <div className="flex gap-2 mt-3">
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleFocus}
           title="Focus on box"
         >
+          <Focus className="h-3 w-3" />
           Focus
-        </button>
-        <button
-          className="btn btn-small"
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleEditLabel}
           title="Edit label (L)"
         >
-          Edit Label
-        </button>
-        <button
-          className="btn btn-small btn-danger"
+          <Pencil className="h-3 w-3" />
+          Edit
+        </Button>
+        <Button
+          variant="destructive"
+          size="sm"
           onClick={handleDelete}
           title="Delete box (Delete)"
         >
+          <Trash2 className="h-3 w-3" />
           Delete
-        </button>
+        </Button>
       </div>
     </div>
   );

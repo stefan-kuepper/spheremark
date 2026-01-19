@@ -8,14 +8,14 @@ interface ProjectGridProps {
 export function ProjectGrid({ projects }: ProjectGridProps) {
   if (projects.length === 0) {
     return (
-      <div id="empty-state">
+      <div className="py-8 px-6 text-center text-muted-foreground">
         <p>No projects yet. Create your first project to get started!</p>
       </div>
     );
   }
 
   return (
-    <div className="project-grid">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4 mt-6">
       {projects.map((project) => (
         <ProjectCard
           key={project.id}

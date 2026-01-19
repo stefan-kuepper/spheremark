@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
+import { Folder } from 'lucide-react';
 import { useProjects } from '../../hooks';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface ProjectCardProps {
   id: number;
@@ -25,28 +27,39 @@ export function ProjectCard({
   };
 
   return (
-    <div className="project-card" onClick={handleClick}>
-      <div className="project-icon">
-        <span>&#128193;</span>
-      </div>
-      <div className="project-info">
-        <h3 className="project-name" title={name}>
-          {name}
-        </h3>
-        {description && (
-          <p className="project-description" title={description}>
-            {description}
-          </p>
-        )}
-        <div className="project-stats">
-          <span className="stat">
-            {imageCount} image{imageCount !== 1 ? 's' : ''}
-          </span>
-          <span className="stat">
-            {annotationCount} annotation{annotationCount !== 1 ? 's' : ''}
-          </span>
+    <Card
+      className="cursor-pointer hover:border-primary hover:-translate-y-0.5 hover:shadow-md"
+      onClick={handleClick}
+    >
+      <CardContent className="p-4 flex gap-4">
+        <div className="text-4xl text-primary flex-shrink-0">
+          <Folder className="h-10 w-10" />
         </div>
-      </div>
-    </div>
+        <div className="flex-1 min-w-0">
+          <h3
+            className="font-semibold text-card-foreground truncate"
+            title={name}
+          >
+            {name}
+          </h3>
+          {description && (
+            <p
+              className="text-sm text-muted-foreground truncate mt-1"
+              title={description}
+            >
+              {description}
+            </p>
+          )}
+          <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+            <span>
+              {imageCount} image{imageCount !== 1 ? 's' : ''}
+            </span>
+            <span>
+              {annotationCount} annotation{annotationCount !== 1 ? 's' : ''}
+            </span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

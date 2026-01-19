@@ -22,13 +22,12 @@ interface DragHandlerProps {
   isActive: boolean;
 }
 
-// Create a helper sphere matching PanoramaSphere for UV raycasting
 const SPHERE_RADIUS = 500;
 const helperSphere = new THREE.Mesh(
   new THREE.SphereGeometry(SPHERE_RADIUS, 60, 30),
   new THREE.MeshBasicMaterial()
 );
-helperSphere.rotation.set(0, Math.PI, 0); // Match PanoramaSphere rotation
+helperSphere.rotation.set(0, Math.PI, 0);
 helperSphere.updateMatrixWorld();
 
 function DragHandler({ onPointerMove, onPointerUp, isActive }: DragHandlerProps) {
@@ -52,7 +51,7 @@ function DragHandler({ onPointerMove, onPointerUp, isActive }: DragHandlerProps)
       if (intersects.length > 0 && intersects[0].uv) {
         return {
           u: intersects[0].uv.x,
-          v: 1 - intersects[0].uv.y, // Match PanoramaSphere's UV inversion
+          v: 1 - intersects[0].uv.y,
         };
       }
       return null;
@@ -109,17 +108,15 @@ export function PanoramaViewer() {
     finishResize,
   } = useInteraction();
 
-  // Keyboard shortcuts
   useKeyboardShortcuts();
 
-  // Middle mouse button detection and hover cleanup
   useEffect(() => {
-    const canvas = document.querySelector('#canvas-container canvas');
+    const canvas = document.querySelector('.canvas-container canvas');
     if (!canvas) return;
 
     const handleMouseDown = (e: Event) => {
       const mouseEvent = e as MouseEvent;
-      if (mouseEvent.button === 1) { // middle mouse
+      if (mouseEvent.button === 1) {
         mouseEvent.preventDefault();
         setMiddleMousePressed(true);
       }
@@ -139,7 +136,7 @@ export function PanoramaViewer() {
     canvas.addEventListener('mousedown', handleMouseDown);
     canvas.addEventListener('mouseup', handleMouseUp);
     canvas.addEventListener('pointerleave', handlePointerLeave);
-    canvas.addEventListener('contextmenu', (e) => e.preventDefault()); // prevent right-click menu
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
     return () => {
       canvas.removeEventListener('mousedown', handleMouseDown);
@@ -154,15 +151,12 @@ export function PanoramaViewer() {
 
   const handlePointerDown = useCallback(
     (uv: UVCoordinate) => {
-      // Ignore if middle mouse is pressed
       if (middleMousePressed) return;
 
       const box = getBoxAtUV(uv);
       if (box) {
-        // Left click on box: select it
         selectBox(box.id);
       } else {
-        // Left click on empty space: start drawing
         startDraw(uv);
       }
     },
@@ -171,7 +165,6 @@ export function PanoramaViewer() {
 
   const handlePointerMove = useCallback(
     (uv: UVCoordinate) => {
-      // Update hover state
       const box = getBoxAtUV(uv);
       setHoveredBox(box?.id ?? null);
 
@@ -214,14 +207,12 @@ export function PanoramaViewer() {
     [boxes, startResize]
   );
 
-  // Determine canvas cursor
   const canvasCursor = middleMousePressed
     ? 'grab'
     : hoverState.hoveredBoxId !== null
       ? 'pointer'
       : 'crosshair';
 
-  // Determine which box to show handles for (hovered or selected)
   const boxIdToShowHandles = hoverState.hoveredBoxId ?? selectedBoxId;
   const boxToShowHandles = boxIdToShowHandles
     ? boxes.find((b) => b.id === boxIdToShowHandles)
@@ -229,7 +220,7 @@ export function PanoramaViewer() {
 
   return (
     <>
-      <div id="canvas-container" style={{ cursor: canvasCursor }}>
+      <div className="canvas-container fixed inset-0 w-full h-full" style={{ cursor: canvasCursor }}>
         <Canvas
           camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 0, 0.1] }}
           gl={{ antialias: false }}
@@ -247,7 +238,6 @@ export function PanoramaViewer() {
 
           <CameraController ref={cameraRef} />
 
-          {/* Render bounding boxes */}
           {boxes.map((box) => (
             <BoundingBoxMesh
               key={box.id}
@@ -257,7 +247,6 @@ export function PanoramaViewer() {
             />
           ))}
 
-          {/* Render handles for hovered or selected box */}
           {boxToShowHandles && (
             <BoxHandles
               box={boxToShowHandles}
@@ -265,7 +254,6 @@ export function PanoramaViewer() {
             />
           )}
 
-          {/* Draw preview */}
           {drawState.isDrawing && drawState.startUV && drawState.currentUV && (
             <DrawPreview
               startUV={drawState.startUV}
@@ -273,7 +261,6 @@ export function PanoramaViewer() {
             />
           )}
 
-          {/* Window-level drag handler for drawing and resizing */}
           <DragHandler
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}

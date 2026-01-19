@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Input } from '@/components/ui/input';
 
 interface LabelEditorProps {
   value: string;
@@ -31,8 +32,8 @@ export function LabelEditor({ value, onSave, onCancel, suggestions }: LabelEdito
   };
 
   return (
-    <div className="label-editor">
-      <input
+    <div className="relative">
+      <Input
         ref={inputRef}
         type="text"
         value={label}
@@ -41,6 +42,7 @@ export function LabelEditor({ value, onSave, onCancel, suggestions }: LabelEdito
         onBlur={handleBlur}
         list="label-suggestions"
         placeholder="Enter label..."
+        className="h-8 text-sm"
       />
       <datalist id="label-suggestions">
         {suggestions.map((suggestion) => (

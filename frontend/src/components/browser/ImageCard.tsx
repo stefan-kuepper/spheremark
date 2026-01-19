@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useImages, useProjects } from '../../hooks';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface ImageCardProps {
   id: number;
@@ -18,18 +19,26 @@ export function ImageCard({ id, filename, annotationCount }: ImageCardProps) {
   };
 
   return (
-    <div className="image-card" onClick={handleClick}>
-      <div className="image-thumbnail">
-        <img src={getThumbnailUrl(id)} alt={filename} loading="lazy" />
+    <Card
+      className="cursor-pointer hover:border-primary hover:-translate-y-0.5 hover:shadow-md overflow-hidden"
+      onClick={handleClick}
+    >
+      <div className="w-full h-[150px] overflow-hidden">
+        <img
+          src={getThumbnailUrl(id)}
+          alt={filename}
+          loading="lazy"
+          className="w-full h-full object-cover block"
+        />
       </div>
-      <div className="image-info">
-        <p className="image-name" title={filename}>
+      <CardContent className="p-3">
+        <p className="text-sm font-medium text-card-foreground truncate" title={filename}>
           {filename}
         </p>
-        <p className="annotation-count">
+        <p className="text-xs text-muted-foreground mt-1">
           {annotationCount} annotation{annotationCount !== 1 ? 's' : ''}
         </p>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

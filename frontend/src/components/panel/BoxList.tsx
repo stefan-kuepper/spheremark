@@ -32,9 +32,9 @@ export function BoxList({ onFocusBox }: BoxListProps) {
 
   if (boxes.length === 0) {
     return (
-      <div id="empty-state">
+      <div className="py-8 px-6 text-center text-muted-foreground">
         <p>No bounding boxes yet</p>
-        <p style={{ fontSize: '0.9em', marginTop: '0.5rem' }}>
+        <p className="text-sm mt-2">
           Switch to Draw mode to create one
         </p>
       </div>
@@ -42,7 +42,7 @@ export function BoxList({ onFocusBox }: BoxListProps) {
   }
 
   return (
-    <div id="box-list">
+    <div className="flex flex-col">
       {boxes.map((box) => (
         <BoxItem
           key={box.id}

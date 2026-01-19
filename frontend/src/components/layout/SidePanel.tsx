@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { BoxList } from '../panel/BoxList';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import type { BoundingBox } from '../../types';
 
 interface SidePanelProps {
@@ -25,20 +28,22 @@ export function SidePanel({ onFocusBox }: SidePanelProps) {
   }
 
   return (
-    <div id="side-panel">
-      <div className="panel-header">
-        <h2>Bounding Boxes</h2>
-        <button
-          className="icon-button"
+    <div className="fixed top-0 right-0 w-80 h-screen bg-white/95 shadow-[-2px_0_10px_rgba(0,0,0,0.1)] z-50 flex flex-col">
+      <div className="p-4 border-b border-border flex justify-between items-center bg-white sticky top-0 z-10">
+        <h2 className="text-lg font-semibold text-card-foreground">Bounding Boxes</h2>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
           onClick={() => setVisible(false)}
         >
-          &times;
-        </button>
+          <X className="h-5 w-5" />
+        </Button>
       </div>
 
-      <div className="panel-content">
+      <ScrollArea className="flex-1">
         <BoxList onFocusBox={onFocusBox} />
-      </div>
+      </ScrollArea>
     </div>
   );
 }

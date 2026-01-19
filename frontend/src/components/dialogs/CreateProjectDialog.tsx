@@ -1,6 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '../../hooks';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogBody,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 interface CreateProjectDialogProps {
   onClose: () => void;
@@ -49,83 +61,74 @@ export function CreateProjectDialog({ onClose }: CreateProjectDialogProps) {
     }
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   return (
-    <div className="dialog-backdrop" onClick={handleBackdropClick}>
-      <div className="dialog">
-        <div className="dialog-header">
-          <h2>Create New Project</h2>
-          <button className="dialog-close" onClick={onClose}>
-            &times;
-          </button>
-        </div>
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent onClose={onClose}>
+        <DialogHeader>
+          <DialogTitle>Create New Project</DialogTitle>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="dialog-content">
-            <div className="form-group">
-              <label htmlFor="project-name">Project Name *</label>
-              <input
-                id="project-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="My Panorama Project"
-                autoFocus
-              />
+          <DialogBody>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="project-name">Project Name *</Label>
+                <Input
+                  id="project-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="My Panorama Project"
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="project-description">Description</Label>
+                <Textarea
+                  id="project-description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Optional description..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="images-path">Images Path *</Label>
+                <Input
+                  id="images-path"
+                  type="text"
+                  value={imagesPath}
+                  onChange={(e) => setImagesPath(e.target.value)}
+                  placeholder="/path/to/panorama/images"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Server-side path to the directory containing panoramic images
+                </p>
+              </div>
+
+              {error && (
+                <div className="text-sm text-destructive">{error}</div>
+              )}
             </div>
+          </DialogBody>
 
-            <div className="form-group">
-              <label htmlFor="project-description">Description</label>
-              <textarea
-                id="project-description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Optional description..."
-                rows={3}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="images-path">Images Path *</label>
-              <input
-                id="images-path"
-                type="text"
-                value={imagesPath}
-                onChange={(e) => setImagesPath(e.target.value)}
-                placeholder="/path/to/panorama/images"
-              />
-              <p className="form-hint">
-                Server-side path to the directory containing panoramic images
-              </p>
-            </div>
-
-            {error && <div className="form-error">{error}</div>}
-          </div>
-
-          <div className="dialog-footer">
-            <button
+          <DialogFooter>
+            <Button
               type="button"
-              className="btn btn-secondary"
+              variant="secondary"
               onClick={onClose}
               disabled={isCreating}
             >
               Cancel
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={isCreating}
-            >
+            </Button>
+            <Button type="submit" disabled={isCreating}>
               {isCreating ? 'Creating...' : 'Create Project'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

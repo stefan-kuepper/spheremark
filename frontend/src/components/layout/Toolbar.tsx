@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, PanelRight, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ToolbarProps {
   onExportClick: () => void;
@@ -11,35 +13,39 @@ export function Toolbar({ onExportClick }: ToolbarProps) {
 
   const handleTogglePanel = () => {
     setPanelVisible(!panelVisible);
-    // Dispatch custom event for SidePanel to listen to
     window.dispatchEvent(
       new CustomEvent('togglePanel', { detail: { visible: !panelVisible } })
     );
   };
 
   return (
-    <div id="toolbar">
-
-
-      <button
-        className="icon-button"
+    <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-white/95 p-2 rounded-lg shadow-lg flex gap-2 items-center z-[60]">
+      <Button
+        variant="outline"
+        size="icon"
         onClick={() => navigate('/')}
         title="Back to Image Browser"
       >
-        <span>&#x2b05;&#xfe0f;</span>
-      </button>
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
 
-      <button
-        className="icon-button"
+      <Button
+        variant="outline"
+        size="icon"
         onClick={handleTogglePanel}
         title="Toggle Panel"
       >
-        <span>&#x1f4cb;</span>
-      </button>
+        <PanelRight className="h-5 w-5" />
+      </Button>
 
-      <button className="icon-button" onClick={onExportClick} title="Export Boxes">
-        <span>&#x1f4be;</span>
-      </button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onExportClick}
+        title="Export Boxes"
+      >
+        <Download className="h-5 w-5" />
+      </Button>
     </div>
   );
 }

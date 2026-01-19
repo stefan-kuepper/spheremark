@@ -1,4 +1,5 @@
 import { useAnnotations } from '../../hooks';
+import { cn } from '@/lib/utils';
 
 export function SaveStatus() {
   const { saveStatus } = useAnnotations();
@@ -14,8 +15,15 @@ export function SaveStatus() {
   }[saveStatus];
 
   return (
-    <div id="save-status" className={saveStatus}>
-      <span id="save-text">{statusText}</span>
+    <div
+      className={cn(
+        'fixed bottom-5 right-5 px-4 py-2 rounded-md text-sm text-white z-[60] transition-opacity',
+        saveStatus === 'saving' && 'bg-warning/90',
+        saveStatus === 'saved' && 'bg-success/90',
+        saveStatus === 'error' && 'bg-destructive/90'
+      )}
+    >
+      <span>{statusText}</span>
     </div>
   );
 }

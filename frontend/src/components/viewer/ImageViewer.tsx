@@ -15,14 +15,12 @@ export function ImageViewer() {
   const imageId = imageIdParam ? parseInt(imageIdParam, 10) : null;
   const imageExists = imageId !== null && images.some((img) => img.id === imageId);
 
-  // Select project from route param
   useEffect(() => {
     if (projectIdNum !== null) {
       selectProject(projectIdNum);
     }
   }, [projectIdNum, selectProject]);
 
-  // Select image from route param
   useEffect(() => {
     if (imageId !== null && imageExists) {
       selectImage(imageId);
@@ -30,15 +28,22 @@ export function ImageViewer() {
   }, [imageId, imageExists, selectImage]);
 
   if (isLoading) {
-    return <div className="loading">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen text-muted-foreground text-lg">
+        Loading...
+      </div>
+    );
   }
 
   if (imageId === null || !imageExists) {
     return (
-      <div className="error-page">
-        <h2>Image not found</h2>
-        <p>The requested image does not exist.</p>
-        <Link to={projectIdNum ? `/projects/${projectIdNum}` : '/'}>
+      <div className="flex flex-col items-center justify-center h-screen text-center text-white">
+        <h2 className="text-2xl font-semibold mb-2">Image not found</h2>
+        <p className="text-muted-foreground mb-4">The requested image does not exist.</p>
+        <Link
+          to={projectIdNum ? `/projects/${projectIdNum}` : '/'}
+          className="text-primary hover:underline"
+        >
           Back to Image Browser
         </Link>
       </div>

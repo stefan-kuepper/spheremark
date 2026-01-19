@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useImages } from '../../hooks';
 import { exports as exportsApi } from '../../api';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogBody,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ExportDialogProps {
   isOpen: boolean;
@@ -72,97 +84,65 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
   }
 
   return (
-    <div id="export-dialog" className="dialog">
-      <div className="dialog-overlay" onClick={onClose}></div>
-      <div className="dialog-content">
-        <div className="dialog-header">
-          <h2>Export Annotations</h2>
-          <button className="dialog-close" onClick={onClose}>
-            &times;
-          </button>
-        </div>
-        <div className="dialog-body">
-          <div className="export-options">
-            <div className="form-group">
-              <label>Export Format</label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    name="format"
-                    value="coco"
-                    checked={format === 'coco'}
-                    onChange={() => setFormat('coco')}
-                  />
-                  <span>COCO Format (JSON)</span>
-                  <p className="radio-description">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent onClose={onClose} className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Export Annotations</DialogTitle>
+        </DialogHeader>
+
+        <DialogBody>
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <Label>Export Format</Label>
+              <RadioGroup value={format} onValueChange={(v) => setFormat(v as ExportFormat)}>
+                <RadioGroupItem value="coco">
+                  <span className="font-medium">COCO Format (JSON)</span>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Standard COCO format with spherical coordinates
                   </p>
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    name="format"
-                    value="yolo"
-                    checked={format === 'yolo'}
-                    onChange={() => setFormat('yolo')}
-                  />
-                  <span>YOLO Format (TXT)</span>
-                  <p className="radio-description">
+                </RadioGroupItem>
+                <RadioGroupItem value="yolo">
+                  <span className="font-medium">YOLO Format (TXT)</span>
+                  <p className="text-sm text-muted-foreground mt-1">
                     YOLO format with spherical coordinates, one .txt file per image
                   </p>
-                </label>
-              </div>
+                </RadioGroupItem>
+              </RadioGroup>
             </div>
 
-            <div className="form-group">
-              <label>Scope</label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    name="scope"
-                    value="current"
-                    checked={scope === 'current'}
-                    onChange={() => setScope('current')}
-                  />
-                  <span>Current Image Only</span>
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    name="scope"
-                    value="all"
-                    checked={scope === 'all'}
-                    onChange={() => setScope('all')}
-                  />
-                  <span>All Images</span>
-                </label>
-              </div>
+            <div className="space-y-3">
+              <Label>Scope</Label>
+              <RadioGroup value={scope} onValueChange={(v) => setScope(v as ExportScope)}>
+                <RadioGroupItem value="current">
+                  <span className="font-medium">Current Image Only</span>
+                </RadioGroupItem>
+                <RadioGroupItem value="all">
+                  <span className="font-medium">All Images</span>
+                </RadioGroupItem>
+              </RadioGroup>
             </div>
 
-            <div className="form-group">
-              <label>Preview</label>
-              <div className="export-preview">
-                <pre id="export-preview-content">
+            <div className="space-y-3">
+              <Label>Preview</Label>
+              <ScrollArea className="h-[200px] rounded-md border border-border bg-muted/50 p-4">
+                <pre className="text-xs font-mono whitespace-pre-wrap break-words">
                   {isLoading ? 'Loading...' : preview}
                 </pre>
-              </div>
+              </ScrollArea>
             </div>
           </div>
-        </div>
-        <div className="dialog-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
+        </DialogBody>
+
+        <DialogFooter>
+          <Button variant="secondary" onClick={onClose}>
             Cancel
-          </button>
-          <button className="btn btn-primary" onClick={handleDownload}>
-            Download
-          </button>
-          <button className="btn btn-secondary" onClick={handleCopy}>
+          </Button>
+          <Button onClick={handleDownload}>Download</Button>
+          <Button variant="secondary" onClick={handleCopy}>
             Copy to Clipboard
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

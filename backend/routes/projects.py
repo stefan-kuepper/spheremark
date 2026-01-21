@@ -1,23 +1,26 @@
 """Project management routes."""
 
+from io import BytesIO
+
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from PIL import Image
 
 from backend.models import (
-    ProjectCreate,
-    ProjectUpdate,
-    ProjectResponse,
-    ProjectListResponse,
-    LabelSchemaCreate,
-    LabelSchemaUpdate,
-    LabelSchemaResponse,
     ImageListResponse,
     ImageResponse,
+    LabelSchemaCreate,
+    LabelSchemaResponse,
+    LabelSchemaUpdate,
+    ProjectCreate,
+    ProjectListResponse,
+    ProjectResponse,
+    ProjectUpdate,
     ScanResult,
 )
-from backend.services.project_service import ProjectService
-from backend.services.image_service import ImageService
 from backend.services.export_service import ExportService
+from backend.services.image_service import ImageService
+from backend.services.project_service import ProjectService
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -177,34 +180,72 @@ async def get_project_image(project_id: int, image_id: int):
     image_service = ImageService()
 
     if not image_service.validate_image_in_project(project_id, image_id):
-        raise HTTPException(
-            status_code=404, detail="Image not found in this project"
-        )
+        raise HTTPException(status_code=404, detail="Image not found in this project")
 
     image = image_service.get_image(image_id)
     return image
 
 
+MAX_IMAGE_WIDTH = 8192
+MAX_IMAGE_HEIGHT = 4096
+
+
 @router.get("/{project_id}/images/{image_id}/file")
-async def get_project_image_file(project_id: int, image_id: int):
-    """Serve the full resolution image file."""
+async def get_project_image_file(
+    project_id: int,
+    image_id: int,
+    full_size=False,
+):
+    """Serve the image file, scaled down by default (max 8192x4096)."""
     image_service = ImageService()
 
     if not image_service.validate_image_in_project(project_id, image_id):
-        raise HTTPException(
-            status_code=404, detail="Image not found in this project"
-        )
+        raise HTTPException(status_code=404, detail="Image not found in this project")
 
     file_path = image_service.get_image_file_path(image_id)
 
     if not file_path or not file_path.exists():
         raise HTTPException(status_code=404, detail="Image file not found")
 
-    return FileResponse(
-        file_path,
-        media_type="image/jpeg",
-        headers={"Cache-Control": "public, max-age=3600"},
-    )
+    if full_size:
+        print("Returning full-size image")
+        return FileResponse(
+            file_path,
+            media_type="image/jpeg",
+            headers={"Cache-Control": "public, max-age=3600"},
+        )
+
+    # Scale down image if larger than max dimensions
+    with Image.open(file_path) as img:
+        print("Resizing")
+        width, height = img.size
+
+        if width <= MAX_IMAGE_WIDTH and height <= MAX_IMAGE_HEIGHT:
+            # Image is already small enough, return original
+            return FileResponse(
+                file_path,
+                media_type="image/jpeg",
+                headers={"Cache-Control": "public, max-age=3600"},
+            )
+
+        # Calculate scale factor to fit within max dimensions
+        scale = min(MAX_IMAGE_WIDTH / width, MAX_IMAGE_HEIGHT / height)
+        new_width = int(width * scale)
+        new_height = int(height * scale)
+
+        # Resize using high-quality Lanczos filter
+        resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+        # Save to buffer
+        buffer = BytesIO()
+        resized.save(buffer, format="JPEG", quality=90)
+        buffer.seek(0)
+
+        return StreamingResponse(
+            buffer,
+            media_type="image/jpeg",
+            headers={"Cache-Control": "public, max-age=3600"},
+        )
 
 
 @router.get("/{project_id}/images/{image_id}/thumbnail")
@@ -213,9 +254,7 @@ async def get_project_image_thumbnail(project_id: int, image_id: int):
     image_service = ImageService()
 
     if not image_service.validate_image_in_project(project_id, image_id):
-        raise HTTPException(
-            status_code=404, detail="Image not found in this project"
-        )
+        raise HTTPException(status_code=404, detail="Image not found in this project")
 
     thumbnail_path = image_service.get_thumbnail_path(image_id)
 

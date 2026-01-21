@@ -13,13 +13,14 @@ import { ImageSidebar } from '../layout/ImageSidebar';
 import { ModeIndicator } from '../layout/ModeIndicator';
 import { SaveStatus } from '../layout/SaveStatus';
 import { ExportDialog } from '../dialogs/ExportDialog';
+import { uvToGeo } from '../../utils/coordinates';
 
-import type { BoundingBox, UVCoordinate, HandleType } from '../../types';
+import type { BoundingBox, GeoCoordinate, HandleType } from '../../types';
 import { SELECTED_COLOR } from '../../utils/colors';
 
 interface DragHandlerProps {
-  onPointerMove: (uv: UVCoordinate) => void;
-  onPointerUp: (uv: UVCoordinate) => void;
+  onPointerMove: (geo: GeoCoordinate) => void;
+  onPointerUp: (geo: GeoCoordinate) => void;
   isActive: boolean;
 }
 
@@ -41,7 +42,7 @@ function DragHandler({ onPointerMove, onPointerUp, isActive }: DragHandlerProps)
     const raycaster = raycasterRef.current;
     const canvas = gl.domElement;
 
-    const getUVFromScreenCoords = (clientX: number, clientY: number): UVCoordinate | null => {
+    const getGeoFromScreenCoords = (clientX: number, clientY: number): GeoCoordinate | null => {
       const rect = canvas.getBoundingClientRect();
       const x = ((clientX - rect.left) / rect.width) * 2 - 1;
       const y = -((clientY - rect.top) / rect.height) * 2 + 1;
@@ -50,22 +51,21 @@ function DragHandler({ onPointerMove, onPointerUp, isActive }: DragHandlerProps)
       const intersects = raycaster.intersectObject(helperSphere);
 
       if (intersects.length > 0 && intersects[0].uv) {
-        return {
-          u: intersects[0].uv.x,
-          v: 1 - intersects[0].uv.y,
-        };
+        const u = intersects[0].uv.x;
+        const v = 1 - intersects[0].uv.y;
+        return uvToGeo(u, v);
       }
       return null;
     };
 
     const handleWindowPointerMove = (e: PointerEvent) => {
-      const uv = getUVFromScreenCoords(e.clientX, e.clientY);
-      if (uv) onPointerMove(uv);
+      const geo = getGeoFromScreenCoords(e.clientX, e.clientY);
+      if (geo) onPointerMove(geo);
     };
 
     const handleWindowPointerUp = (e: PointerEvent) => {
-      const uv = getUVFromScreenCoords(e.clientX, e.clientY);
-      if (uv) onPointerUp(uv);
+      const geo = getGeoFromScreenCoords(e.clientX, e.clientY);
+      if (geo) onPointerUp(geo);
     };
 
     window.addEventListener('pointermove', handleWindowPointerMove);
@@ -90,7 +90,7 @@ export function PanoramaViewer() {
     selectBox,
     createBox,
     updateBox,
-    getBoxAtUV,
+    getBoxAtGeo,
     getSelectedBox,
   } = useAnnotations();
 
@@ -151,45 +151,45 @@ export function PanoramaViewer() {
   }, []);
 
   const handlePointerDown = useCallback(
-    (uv: UVCoordinate) => {
+    (geo: GeoCoordinate) => {
       if (middleMousePressed) return;
 
-      const box = getBoxAtUV(uv);
+      const box = getBoxAtGeo(geo);
       if (box) {
         selectBox(box.id);
       } else {
-        startDraw(uv);
+        startDraw(geo);
       }
     },
-    [middleMousePressed, getBoxAtUV, selectBox, startDraw]
+    [middleMousePressed, getBoxAtGeo, selectBox, startDraw]
   );
 
   const handlePointerMove = useCallback(
-    (uv: UVCoordinate) => {
-      const box = getBoxAtUV(uv);
+    (geo: GeoCoordinate) => {
+      const box = getBoxAtGeo(geo);
       setHoveredBox(box?.id ?? null);
 
       if (drawState.isDrawing) {
-        updateDraw(uv);
+        updateDraw(geo);
       } else if (resizeState.isResizing) {
         const currentBox = getSelectedBox();
         if (currentBox) {
-          const newCoords = updateResize(uv, currentBox);
+          const newCoords = updateResize(geo, currentBox);
           if (newCoords && resizeState.boxId !== null) {
-            updateBox(resizeState.boxId, newCoords.uvMin, newCoords.uvMax);
+            updateBox(resizeState.boxId, newCoords.geoMin, newCoords.geoMax);
           }
         }
       }
     },
-    [drawState.isDrawing, resizeState.isResizing, resizeState.boxId, updateDraw, updateResize, getSelectedBox, updateBox, getBoxAtUV, setHoveredBox]
+    [drawState.isDrawing, resizeState.isResizing, resizeState.boxId, updateDraw, updateResize, getSelectedBox, updateBox, getBoxAtGeo, setHoveredBox]
   );
 
   const handlePointerUp = useCallback(
-    async (_uv: UVCoordinate) => {
+    async (_geo: GeoCoordinate) => {
       if (drawState.isDrawing) {
         const result = finishDraw();
         if (result) {
-          await createBox(result.uvMin, result.uvMax);
+          await createBox(result.geoMin, result.geoMax);
         }
       } else if (resizeState.isResizing) {
         finishResize();
@@ -242,8 +242,8 @@ export function PanoramaViewer() {
           {boxes.map((box) => (
             <BoundingBoxMesh
               key={box.id}
-              uvMin={box.uvMin}
-              uvMax={box.uvMax}
+              geoMin={box.geoMin}
+              geoMax={box.geoMax}
               color={box.id === selectedBoxId ? SELECTED_COLOR : box.color}
             />
           ))}
@@ -255,10 +255,10 @@ export function PanoramaViewer() {
             />
           )}
 
-          {drawState.isDrawing && drawState.startUV && drawState.currentUV && (
+          {drawState.isDrawing && drawState.startGeo && drawState.currentGeo && (
             <DrawPreview
-              startUV={drawState.startUV}
-              currentUV={drawState.currentUV}
+              startGeo={drawState.startGeo}
+              currentGeo={drawState.currentGeo}
             />
           )}
 

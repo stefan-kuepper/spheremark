@@ -2,13 +2,14 @@ import { useRef, useEffect } from 'react';
 import { useLoader } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useImages, useInteraction } from '../hooks';
+import { uvToGeo } from '../utils/coordinates';
 import type { ThreeEvent } from '@react-three/fiber';
-import type { UVCoordinate } from '../types';
+import type { GeoCoordinate } from '../types';
 
 interface PanoramaSphereProps {
-  onPointerDown?: (uv: UVCoordinate) => void;
-  onPointerMove?: (uv: UVCoordinate) => void;
-  onPointerUp?: (uv: UVCoordinate) => void;
+  onPointerDown?: (geo: GeoCoordinate) => void;
+  onPointerMove?: (geo: GeoCoordinate) => void;
+  onPointerUp?: (geo: GeoCoordinate) => void;
 }
 
 export function PanoramaSphere({
@@ -38,12 +39,12 @@ export function PanoramaSphere({
     }
   }, [texture, textureUrl]);
 
-  const getUVFromEvent = (event: ThreeEvent<PointerEvent>): UVCoordinate | null => {
+  const getGeoFromEvent = (event: ThreeEvent<PointerEvent>): GeoCoordinate | null => {
     if (!event.uv) return null;
-    return {
-      u: event.uv.x,
-      v: 1 - event.uv.y, // Invert V axis
-    };
+    // Convert Three.js UV to geographic coordinates
+    const u = event.uv.x;
+    const v = 1 - event.uv.y; // Invert V axis
+    return uvToGeo(u, v);
   };
 
   const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
@@ -52,14 +53,14 @@ export function PanoramaSphere({
     // Ignore if middle mouse is pressed (orbiting)
     if (middleMousePressed) return;
     event.stopPropagation();
-    const uv = getUVFromEvent(event);
-    if (uv) onPointerDown?.(uv);
+    const geo = getGeoFromEvent(event);
+    if (geo) onPointerDown?.(geo);
   };
 
   const handlePointerMove = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
-    const uv = getUVFromEvent(event);
-    if (uv) onPointerMove?.(uv);
+    const geo = getGeoFromEvent(event);
+    if (geo) onPointerMove?.(geo);
   };
 
   const handlePointerUp = (event: ThreeEvent<PointerEvent>) => {
@@ -67,8 +68,8 @@ export function PanoramaSphere({
     if (event.button !== 0) return;
     if (!drawState.isDrawing && !resizeState.isResizing) return;
     event.stopPropagation();
-    const uv = getUVFromEvent(event);
-    if (uv) onPointerUp?.(uv);
+    const geo = getGeoFromEvent(event);
+    if (geo) onPointerUp?.(geo);
   };
 
   if (!textureUrl) {

@@ -1,84 +1,83 @@
-import math
 from typing import Tuple
 
 
-def uv_to_spherical(u: float, v: float) -> Tuple[float, float]:
+def geo_to_uv(azimuth: float, altitude: float) -> Tuple[float, float]:
     """
-    Convert UV coordinates to spherical angles.
+    Convert geographic coordinates to UV coordinates.
 
     Args:
-        u: U coordinate (0.0 to 1.0) representing longitude
-        v: V coordinate (0.0 to 1.0) representing latitude
-
-    Returns:
-        Tuple of (phi, theta) in radians:
-        - phi: Longitude [-π, π]
-        - theta: Latitude [0, π]
-    """
-    phi = (u * 2 * math.pi) - math.pi  # U [0,1] → φ [-π, π]
-    theta = v * math.pi  # V [0,1] → θ [0, π]
-    return phi, theta
-
-
-def spherical_to_uv(phi: float, theta: float) -> Tuple[float, float]:
-    """
-    Convert spherical angles to UV coordinates.
-
-    Args:
-        phi: Longitude in radians [-π, π]
-        theta: Latitude in radians [0, π]
+        azimuth: Azimuth angle in degrees (0-360, 0=north)
+        altitude: Altitude angle in degrees (-90 to 90, 0=horizon)
 
     Returns:
         Tuple of (u, v) coordinates (0.0 to 1.0)
     """
-    u = (phi + math.pi) / (2 * math.pi)
-    v = theta / math.pi
+    u = azimuth / 360.0
+    v = (90.0 - altitude) / 180.0
     return u, v
 
 
-def uv_bbox_to_spherical(
-    uv_min_u: float, uv_min_v: float, uv_max_u: float, uv_max_v: float
-) -> dict:
+def uv_to_geo(u: float, v: float) -> Tuple[float, float]:
     """
-    Convert UV bounding box to spherical coordinates.
+    Convert UV coordinates to geographic coordinates.
 
     Args:
-        uv_min_u, uv_min_v: Minimum UV coordinates
-        uv_max_u, uv_max_v: Maximum UV coordinates
+        u: U coordinate (0.0 to 1.0)
+        v: V coordinate (0.0 to 1.0)
 
     Returns:
-        Dictionary with phi_min, theta_min, phi_max, theta_max
+        Tuple of (azimuth, altitude) in degrees
+        - azimuth: 0-360 (0=north)
+        - altitude: -90 to 90 (0=horizon)
     """
-    phi_min, theta_min = uv_to_spherical(uv_min_u, uv_min_v)
-    phi_max, theta_max = uv_to_spherical(uv_max_u, uv_max_v)
-
-    return {
-        "phi_min": phi_min,
-        "theta_min": theta_min,
-        "phi_max": phi_max,
-        "theta_max": theta_max,
-    }
+    azimuth = u * 360.0
+    altitude = 90.0 - (v * 180.0)
+    return azimuth, altitude
 
 
-def spherical_bbox_to_uv(
-    phi_min: float, theta_min: float, phi_max: float, theta_max: float
+def geo_bbox_to_uv(
+    az_min: float, alt_min: float, az_max: float, alt_max: float
 ) -> dict:
     """
-    Convert spherical bounding box to UV coordinates.
+    Convert geographic bounding box to UV coordinates.
 
     Args:
-        phi_min, theta_min: Minimum spherical angles (radians)
-        phi_max, theta_max: Maximum spherical angles (radians)
+        az_min, alt_min: Minimum azimuth and altitude (degrees)
+        az_max, alt_max: Maximum azimuth and altitude (degrees)
 
     Returns:
         Dictionary with uv_min_u, uv_min_v, uv_max_u, uv_max_v
     """
-    uv_min_u, uv_min_v = spherical_to_uv(phi_min, theta_min)
-    uv_max_u, uv_max_v = spherical_to_uv(phi_max, theta_max)
+    uv_min_u, uv_min_v = geo_to_uv(az_min, alt_max)  # alt_max -> lower v (top)
+    uv_max_u, uv_max_v = geo_to_uv(az_max, alt_min)  # alt_min -> higher v (bottom)
 
     return {
         "uv_min_u": uv_min_u,
         "uv_min_v": uv_min_v,
         "uv_max_u": uv_max_u,
         "uv_max_v": uv_max_v,
+    }
+
+
+def uv_bbox_to_geo(
+    uv_min_u: float, uv_min_v: float, uv_max_u: float, uv_max_v: float
+) -> dict:
+    """
+    Convert UV bounding box to geographic coordinates.
+
+    Args:
+        uv_min_u, uv_min_v: Minimum UV coordinates
+        uv_max_u, uv_max_v: Maximum UV coordinates
+
+    Returns:
+        Dictionary with az_min, alt_min, az_max, alt_max (degrees)
+    """
+    az_min, alt_max = uv_to_geo(uv_min_u, uv_min_v)  # lower v -> higher altitude
+    az_max, alt_min = uv_to_geo(uv_max_u, uv_max_v)  # higher v -> lower altitude
+
+    return {
+        "az_min": az_min,
+        "alt_min": alt_min,
+        "az_max": az_max,
+        "alt_max": alt_max,
     }

@@ -1,21 +1,21 @@
 import { useMemo, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { generateBoxPoints } from '../utils/coordinates';
-import type { UVCoordinate } from '../types';
+import type { GeoCoordinate } from '../types';
 
 interface BoundingBoxMeshProps {
-  uvMin: UVCoordinate;
-  uvMax: UVCoordinate;
+  geoMin: GeoCoordinate;
+  geoMax: GeoCoordinate;
   color: string;
 }
 
-export function BoundingBoxMesh({ uvMin, uvMax, color }: BoundingBoxMeshProps) {
+export function BoundingBoxMesh({ geoMin, geoMax, color }: BoundingBoxMeshProps) {
   const lineRef = useRef<THREE.LineLoop>(null);
   const geometryRef = useRef<THREE.BufferGeometry>(null);
 
   const points = useMemo(() => {
-    return generateBoxPoints(uvMin, uvMax);
-  }, [uvMin.u, uvMin.v, uvMax.u, uvMax.v]);
+    return generateBoxPoints(geoMin, geoMax);
+  }, [geoMin.azimuth, geoMin.altitude, geoMax.azimuth, geoMax.altitude]);
 
   // Update geometry when points change
   useEffect(() => {

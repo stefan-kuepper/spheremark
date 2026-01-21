@@ -115,24 +115,24 @@ class ImageListResponse(BaseModel):
 
 class AnnotationBase(BaseModel):
     label: Optional[str] = None
-    uv_min_u: float = Field(..., ge=0.0, le=1.0)
-    uv_min_v: float = Field(..., ge=0.0, le=1.0)
-    uv_max_u: float = Field(..., ge=0.0, le=1.0)
-    uv_max_v: float = Field(..., ge=0.0, le=1.0)
+    az_min: float = Field(..., ge=0.0, le=360.0)
+    alt_min: float = Field(..., ge=-90.0, le=90.0)
+    az_max: float = Field(..., ge=0.0, le=360.0)
+    alt_max: float = Field(..., ge=-90.0, le=90.0)
     color: Optional[str] = None
 
-    @field_validator("uv_max_u")
+    @field_validator("az_max")
     @classmethod
-    def validate_u_range(cls, v, info):
-        if "uv_min_u" in info.data and v <= info.data["uv_min_u"]:
-            raise ValueError("uv_max_u must be greater than uv_min_u")
+    def validate_azimuth_range(cls, v, info):
+        if "az_min" in info.data and v <= info.data["az_min"]:
+            raise ValueError("az_max must be greater than az_min")
         return v
 
-    @field_validator("uv_max_v")
+    @field_validator("alt_min")
     @classmethod
-    def validate_v_range(cls, v, info):
-        if "uv_min_v" in info.data and v <= info.data["uv_min_v"]:
-            raise ValueError("uv_max_v must be greater than uv_min_v")
+    def validate_altitude_range(cls, v, info):
+        if "alt_max" in info.data and v >= info.data["alt_max"]:
+            raise ValueError("alt_min must be less than alt_max")
         return v
 
 
@@ -150,10 +150,10 @@ class AnnotationCreate(AnnotationBase):
 
 class AnnotationUpdate(BaseModel):
     label: Optional[str] = None
-    uv_min_u: Optional[float] = Field(None, ge=0.0, le=1.0)
-    uv_min_v: Optional[float] = Field(None, ge=0.0, le=1.0)
-    uv_max_u: Optional[float] = Field(None, ge=0.0, le=1.0)
-    uv_max_v: Optional[float] = Field(None, ge=0.0, le=1.0)
+    az_min: Optional[float] = Field(None, ge=0.0, le=360.0)
+    alt_min: Optional[float] = Field(None, ge=-90.0, le=90.0)
+    az_max: Optional[float] = Field(None, ge=0.0, le=360.0)
+    alt_max: Optional[float] = Field(None, ge=-90.0, le=90.0)
     color: Optional[str] = None
 
 

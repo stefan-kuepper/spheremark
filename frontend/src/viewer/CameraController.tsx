@@ -25,9 +25,13 @@ export const CameraController = forwardRef<CameraControllerHandle, object>(
       focusOnBox: (box: BoundingBox) => {
         const perspCamera = camera as THREE.PerspectiveCamera;
 
-        // Calculate box center in UV space
-        const centerU = (box.uvMin.u + box.uvMax.u) / 2;
-        const centerV = (box.uvMin.v + box.uvMax.v) / 2;
+        // Calculate box center in geographic space
+        const centerAz = (box.geoMin.azimuth + box.geoMax.azimuth) / 2;
+        const centerAlt = (box.geoMin.altitude + box.geoMax.altitude) / 2;
+
+        // Convert to UV then to spherical for camera positioning
+        const centerU = centerAz / 360;
+        const centerV = (90 - centerAlt) / 180;
 
         // Convert to spherical coordinates
         const phi = centerU * Math.PI * 2 - Math.PI / 2;
@@ -39,10 +43,10 @@ export const CameraController = forwardRef<CameraControllerHandle, object>(
         perspCamera.position.y = -distance * Math.cos(theta);
         perspCamera.position.z = distance * Math.sin(theta) * Math.cos(phi);
 
-        // Zoom based on box size
-        const boxSizeU = box.uvMax.u - box.uvMin.u;
-        const boxSizeV = box.uvMax.v - box.uvMin.v;
-        const avgBoxSize = (boxSizeU + boxSizeV) / 2;
+        // Zoom based on box size (in degrees, normalized)
+        const boxSizeAz = (box.geoMax.azimuth - box.geoMin.azimuth) / 360;
+        const boxSizeAlt = (box.geoMax.altitude - box.geoMin.altitude) / 180;
+        const avgBoxSize = (boxSizeAz + boxSizeAlt) / 2;
         const targetFOV = Math.max(MIN_FOV, Math.min(75, avgBoxSize * 500));
 
         perspCamera.fov = targetFOV;

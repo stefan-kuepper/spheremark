@@ -1,13 +1,13 @@
-export interface UVCoordinate {
-  u: number; // 0.0 - 1.0 (longitude)
-  v: number; // 0.0 - 1.0 (latitude)
+export interface GeoCoordinate {
+  azimuth: number; // 0-360 degrees (0=north)
+  altitude: number; // -90 to 90 degrees (0=horizon)
 }
 
 export interface BoundingBox {
   id: number | string; // Server ID or "local-N" for unsaved boxes
   serverId: number | null;
-  uvMin: UVCoordinate;
-  uvMax: UVCoordinate;
+  geoMin: GeoCoordinate; // min azimuth, min altitude
+  geoMax: GeoCoordinate; // max azimuth, max altitude
   label: string;
   color: string;
   createdAt: number;
@@ -17,28 +17,28 @@ export interface AnnotationResponse {
   id: number;
   image_id: number;
   label: string | null;
-  uv_min_u: number;
-  uv_min_v: number;
-  uv_max_u: number;
-  uv_max_v: number;
+  az_min: number;
+  alt_min: number;
+  az_max: number;
+  alt_max: number;
   color: string;
   created_at: string;
 }
 
 export interface AnnotationCreate {
   label: string;
-  uv_min_u: number;
-  uv_min_v: number;
-  uv_max_u: number;
-  uv_max_v: number;
+  az_min: number;
+  alt_min: number;
+  az_max: number;
+  alt_max: number;
   color: string;
 }
 
 export interface AnnotationUpdate {
   label: string;
-  uv_min_u: number;
-  uv_min_v: number;
-  uv_max_u: number;
-  uv_max_v: number;
+  az_min: number;
+  alt_min: number;
+  az_max: number;
+  alt_max: number;
   color: string;
 }

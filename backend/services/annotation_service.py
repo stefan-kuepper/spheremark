@@ -15,16 +15,16 @@ class AnnotationService:
         cursor = self.db.execute(
             """
             INSERT INTO annotations (
-                image_id, label, uv_min_u, uv_min_v, uv_max_u, uv_max_v, color
+                image_id, label, az_min, alt_min, az_max, alt_max, color
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 annotation.image_id,
                 annotation.label,
-                annotation.uv_min_u,
-                annotation.uv_min_v,
-                annotation.uv_max_u,
-                annotation.uv_max_v,
+                annotation.az_min,
+                annotation.alt_min,
+                annotation.az_max,
+                annotation.alt_max,
                 annotation.color,
             ),
         )
@@ -45,10 +45,10 @@ class AnnotationService:
             id=row["id"],
             image_id=row["image_id"],
             label=row["label"],
-            uv_min_u=row["uv_min_u"],
-            uv_min_v=row["uv_min_v"],
-            uv_max_u=row["uv_max_u"],
-            uv_max_v=row["uv_max_v"],
+            az_min=row["az_min"],
+            alt_min=row["alt_min"],
+            az_max=row["az_max"],
+            alt_max=row["alt_max"],
             color=row["color"],
             created_at=row["created_at"],
             updated_at=row["updated_at"],
@@ -66,10 +66,10 @@ class AnnotationService:
                 id=row["id"],
                 image_id=row["image_id"],
                 label=row["label"],
-                uv_min_u=row["uv_min_u"],
-                uv_min_v=row["uv_min_v"],
-                uv_max_u=row["uv_max_u"],
-                uv_max_v=row["uv_max_v"],
+                az_min=row["az_min"],
+                alt_min=row["alt_min"],
+                az_max=row["az_max"],
+                alt_max=row["alt_max"],
                 color=row["color"],
                 created_at=row["created_at"],
                 updated_at=row["updated_at"],
@@ -88,10 +88,10 @@ class AnnotationService:
                 id=row["id"],
                 image_id=row["image_id"],
                 label=row["label"],
-                uv_min_u=row["uv_min_u"],
-                uv_min_v=row["uv_min_v"],
-                uv_max_u=row["uv_max_u"],
-                uv_max_v=row["uv_max_v"],
+                az_min=row["az_min"],
+                alt_min=row["alt_min"],
+                az_max=row["az_max"],
+                alt_max=row["alt_max"],
                 color=row["color"],
                 created_at=row["created_at"],
                 updated_at=row["updated_at"],
@@ -116,21 +116,21 @@ class AnnotationService:
             update_fields.append("label = ?")
             update_values.append(update.label)
 
-        if update.uv_min_u is not None:
-            update_fields.append("uv_min_u = ?")
-            update_values.append(update.uv_min_u)
+        if update.az_min is not None:
+            update_fields.append("az_min = ?")
+            update_values.append(update.az_min)
 
-        if update.uv_min_v is not None:
-            update_fields.append("uv_min_v = ?")
-            update_values.append(update.uv_min_v)
+        if update.alt_min is not None:
+            update_fields.append("alt_min = ?")
+            update_values.append(update.alt_min)
 
-        if update.uv_max_u is not None:
-            update_fields.append("uv_max_u = ?")
-            update_values.append(update.uv_max_u)
+        if update.az_max is not None:
+            update_fields.append("az_max = ?")
+            update_values.append(update.az_max)
 
-        if update.uv_max_v is not None:
-            update_fields.append("uv_max_v = ?")
-            update_values.append(update.uv_max_v)
+        if update.alt_max is not None:
+            update_fields.append("alt_max = ?")
+            update_values.append(update.alt_max)
 
         if update.color is not None:
             update_fields.append("color = ?")

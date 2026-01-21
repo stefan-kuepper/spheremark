@@ -1,5 +1,5 @@
 import { Html } from '@react-three/drei';
-import { uvTo3D } from '../utils/coordinates';
+import { geoTo3D } from '../utils/coordinates';
 import type { BoundingBox, HandleType } from '../types';
 
 interface BoxHandlesProps {
@@ -35,17 +35,17 @@ function Handle({ position, type, boxId, onDragStart }: HandleProps) {
 export function BoxHandles({ box, onDragStart }: BoxHandlesProps) {
   if (!box) return null;
 
-  const corners: { type: HandleType; u: number; v: number }[] = [
-    { type: 'top-left', u: box.uvMin.u, v: box.uvMin.v },
-    { type: 'top-right', u: box.uvMax.u, v: box.uvMin.v },
-    { type: 'bottom-left', u: box.uvMin.u, v: box.uvMax.v },
-    { type: 'bottom-right', u: box.uvMax.u, v: box.uvMax.v },
+  const corners: { type: HandleType; azimuth: number; altitude: number }[] = [
+    { type: 'top-left', azimuth: box.geoMin.azimuth, altitude: box.geoMax.altitude },
+    { type: 'top-right', azimuth: box.geoMax.azimuth, altitude: box.geoMax.altitude },
+    { type: 'bottom-left', azimuth: box.geoMin.azimuth, altitude: box.geoMin.altitude },
+    { type: 'bottom-right', azimuth: box.geoMax.azimuth, altitude: box.geoMin.altitude },
   ];
 
   return (
     <>
       {corners.map((corner) => {
-        const pos3D = uvTo3D(corner.u, corner.v);
+        const pos3D = geoTo3D(corner.azimuth, corner.altitude);
         return (
           <Handle
             key={corner.type}

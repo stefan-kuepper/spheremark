@@ -28,7 +28,7 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions = {}) 
            } else if (resizeState.isResizing) {
              const original = cancelResize();
              if (original && resizeState.boxId !== null) {
-               updateBox(resizeState.boxId, original.uvMin, original.uvMax);
+               updateBox(resizeState.boxId, original.geoMin, original.geoMax);
              }
            } else if (selectedBoxId !== null) {
              selectBox(null);

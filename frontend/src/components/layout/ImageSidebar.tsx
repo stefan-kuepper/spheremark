@@ -113,9 +113,8 @@ export function ImageSidebar() {
 
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-2">
-          {images.map((image, index) => {
+          {images.map((image) => {
             const isCurrent = image.id === currentImageId;
-            const isUpcoming = index > currentIndex;
 
             return (
               <button

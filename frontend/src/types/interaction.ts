@@ -1,4 +1,4 @@
-import type { UVCoordinate, BoundingBox } from './annotation';
+import type { GeoCoordinate, BoundingBox } from './annotation';
 
 export type HandleType = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
@@ -6,15 +6,15 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 export interface DrawState {
   isDrawing: boolean;
-  startUV: UVCoordinate | null;
-  currentUV: UVCoordinate | null;
+  startGeo: GeoCoordinate | null;
+  currentGeo: GeoCoordinate | null;
 }
 
 export interface ResizeState {
   isResizing: boolean;
   boxId: string | number | null;
   handleType: HandleType | null;
-  originalBox: Pick<BoundingBox, 'uvMin' | 'uvMax'> | null;
+  originalBox: Pick<BoundingBox, 'geoMin' | 'geoMax'> | null;
 }
 
 export interface HoverState {

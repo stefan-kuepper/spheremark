@@ -9,23 +9,23 @@ import {
 import { annotations as annotationsApi } from '../api';
 import { useImages } from './ImageContext';
 import { generateRandomColor } from '../utils/colors';
-import type { BoundingBox, UVCoordinate, SaveStatus } from '../types';
+import type { BoundingBox, GeoCoordinate, SaveStatus } from '../types';
 
 interface AnnotationContextValue {
   boxes: BoundingBox[];
   selectedBoxId: string | number | null;
   saveStatus: SaveStatus;
   loadAnnotations: () => Promise<void>;
-  createBox: (uvMin: UVCoordinate, uvMax: UVCoordinate) => Promise<BoundingBox>;
+  createBox: (geoMin: GeoCoordinate, geoMax: GeoCoordinate) => Promise<BoundingBox>;
   updateBox: (
     boxId: string | number,
-    uvMin: UVCoordinate,
-    uvMax: UVCoordinate
+    geoMin: GeoCoordinate,
+    geoMax: GeoCoordinate
   ) => Promise<void>;
   updateBoxLabel: (boxId: string | number, label: string) => Promise<void>;
   deleteBox: (boxId: string | number) => Promise<void>;
   selectBox: (boxId: string | number | null) => void;
-  getBoxAtUV: (uv: UVCoordinate) => BoundingBox | null;
+  getBoxAtGeo: (geo: GeoCoordinate) => BoundingBox | null;
   clearAnnotations: () => void;
   getSelectedBox: () => BoundingBox | null;
 }
@@ -51,13 +51,13 @@ export function AnnotationProvider({ children }: AnnotationProviderProps) {
       const loadedBoxes: BoundingBox[] = data.map((annotation) => ({
         id: annotation.id,
         serverId: annotation.id,
-        uvMin: {
-          u: annotation.uv_min_u,
-          v: annotation.uv_min_v,
+        geoMin: {
+          azimuth: annotation.az_min,
+          altitude: annotation.alt_min,
         },
-        uvMax: {
-          u: annotation.uv_max_u,
-          v: annotation.uv_max_v,
+        geoMax: {
+          azimuth: annotation.az_max,
+          altitude: annotation.alt_max,
         },
         label: annotation.label || '',
         color: annotation.color || generateRandomColor(),
@@ -70,7 +70,7 @@ export function AnnotationProvider({ children }: AnnotationProviderProps) {
   }, [currentImageId]);
 
   const createBox = useCallback(
-    async (uvMin: UVCoordinate, uvMax: UVCoordinate): Promise<BoundingBox> => {
+    async (geoMin: GeoCoordinate, geoMax: GeoCoordinate): Promise<BoundingBox> => {
       if (!currentImageId) {
         throw new Error('No image selected');
       }
@@ -82,8 +82,8 @@ export function AnnotationProvider({ children }: AnnotationProviderProps) {
       const newBox: BoundingBox = {
         id: localId,
         serverId: null,
-        uvMin: { ...uvMin },
-        uvMax: { ...uvMax },
+        geoMin: { ...geoMin },
+        geoMax: { ...geoMax },
         label: '',
         color,
         createdAt: Date.now(),
@@ -96,10 +96,10 @@ export function AnnotationProvider({ children }: AnnotationProviderProps) {
         setSaveStatus('saving');
         const savedAnnotation = await annotationsApi.create(currentImageId, {
           label: newBox.label,
-          uv_min_u: newBox.uvMin.u,
-          uv_min_v: newBox.uvMin.v,
-          uv_max_u: newBox.uvMax.u,
-          uv_max_v: newBox.uvMax.v,
+          az_min: newBox.geoMin.azimuth,
+          alt_min: newBox.geoMin.altitude,
+          az_max: newBox.geoMax.azimuth,
+          alt_max: newBox.geoMax.altitude,
           color: newBox.color,
         });
 
@@ -126,12 +126,12 @@ export function AnnotationProvider({ children }: AnnotationProviderProps) {
   const updateBox = useCallback(
     async (
       boxId: string | number,
-      uvMin: UVCoordinate,
-      uvMax: UVCoordinate
+      geoMin: GeoCoordinate,
+      geoMax: GeoCoordinate
     ): Promise<void> => {
       setBoxes((prev) =>
         prev.map((box) =>
-          box.id === boxId ? { ...box, uvMin: { ...uvMin }, uvMax: { ...uvMax } } : box
+          box.id === boxId ? { ...box, geoMin: { ...geoMin }, geoMax: { ...geoMax } } : box
         )
       );
 
@@ -141,10 +141,10 @@ export function AnnotationProvider({ children }: AnnotationProviderProps) {
           setSaveStatus('saving');
           await annotationsApi.update(box.serverId, {
             label: box.label,
-            uv_min_u: uvMin.u,
-            uv_min_v: uvMin.v,
-            uv_max_u: uvMax.u,
-            uv_max_v: uvMax.v,
+            az_min: geoMin.azimuth,
+            alt_min: geoMin.altitude,
+            az_max: geoMax.azimuth,
+            alt_max: geoMax.altitude,
             color: box.color,
           });
           setSaveStatus('saved');
@@ -169,10 +169,10 @@ export function AnnotationProvider({ children }: AnnotationProviderProps) {
           setSaveStatus('saving');
           await annotationsApi.update(box.serverId, {
             label,
-            uv_min_u: box.uvMin.u,
-            uv_min_v: box.uvMin.v,
-            uv_max_u: box.uvMax.u,
-            uv_max_v: box.uvMax.v,
+            az_min: box.geoMin.azimuth,
+            alt_min: box.geoMin.altitude,
+            az_max: box.geoMax.azimuth,
+            alt_max: box.geoMax.altitude,
             color: box.color,
           });
           setSaveStatus('saved');
@@ -214,14 +214,14 @@ export function AnnotationProvider({ children }: AnnotationProviderProps) {
     setSelectedBoxId(boxId);
   }, []);
 
-  const getBoxAtUV = useCallback(
-    (uv: UVCoordinate): BoundingBox | null => {
+  const getBoxAtGeo = useCallback(
+    (geo: GeoCoordinate): BoundingBox | null => {
       for (const box of boxes) {
         if (
-          uv.u >= box.uvMin.u &&
-          uv.u <= box.uvMax.u &&
-          uv.v >= box.uvMin.v &&
-          uv.v <= box.uvMax.v
+          geo.azimuth >= box.geoMin.azimuth &&
+          geo.azimuth <= box.geoMax.azimuth &&
+          geo.altitude >= box.geoMin.altitude &&
+          geo.altitude <= box.geoMax.altitude
         ) {
           return box;
         }
@@ -269,7 +269,7 @@ export function AnnotationProvider({ children }: AnnotationProviderProps) {
     updateBoxLabel,
     deleteBox,
     selectBox,
-    getBoxAtUV,
+    getBoxAtGeo,
     clearAnnotations,
     getSelectedBox,
   };

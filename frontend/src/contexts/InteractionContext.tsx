@@ -11,12 +11,12 @@ import type {
   ResizeState,
   HoverState,
   HandleType,
-  UVCoordinate,
+  GeoCoordinate,
   BoundingBox,
 } from '../types';
 
-const MIN_BOX_SIZE = 0.02;
-const MAX_BOX_WIDTH = 0.5;
+const MIN_BOX_SIZE_DEG = 7.2; // ~2% of 360 for azimuth, ~4% of 180 for altitude
+const MAX_BOX_WIDTH_DEG = 180; // Max width in degrees (50% of full range)
 
 interface InteractionContextValue {
   drawState: DrawState;
@@ -24,29 +24,29 @@ interface InteractionContextValue {
   hoverState: HoverState;
   middleMousePressed: boolean;
   controlsEnabled: boolean;
-  startDraw: (uv: UVCoordinate) => void;
-  updateDraw: (uv: UVCoordinate) => void;
-  finishDraw: () => { uvMin: UVCoordinate; uvMax: UVCoordinate } | null;
+  startDraw: (geo: GeoCoordinate) => void;
+  updateDraw: (geo: GeoCoordinate) => void;
+  finishDraw: () => { geoMin: GeoCoordinate; geoMax: GeoCoordinate } | null;
   cancelDraw: () => void;
   startResize: (
     boxId: string | number,
     handleType: HandleType,
-    originalBox: Pick<BoundingBox, 'uvMin' | 'uvMax'>
+    originalBox: Pick<BoundingBox, 'geoMin' | 'geoMax'>
   ) => void;
   updateResize: (
-    uv: UVCoordinate,
-    currentBox: Pick<BoundingBox, 'uvMin' | 'uvMax'>
-  ) => { uvMin: UVCoordinate; uvMax: UVCoordinate } | null;
+    geo: GeoCoordinate,
+    currentBox: Pick<BoundingBox, 'geoMin' | 'geoMax'>
+  ) => { geoMin: GeoCoordinate; geoMax: GeoCoordinate } | null;
   finishResize: () => void;
-  cancelResize: () => { uvMin: UVCoordinate; uvMax: UVCoordinate } | null;
+  cancelResize: () => { geoMin: GeoCoordinate; geoMax: GeoCoordinate } | null;
   setMiddleMousePressed: (pressed: boolean) => void;
   setHoveredBox: (boxId: string | number | null) => void;
 }
 
 const initialDrawState: DrawState = {
   isDrawing: false,
-  startUV: null,
-  currentUV: null,
+  startGeo: null,
+  currentGeo: null,
 };
 
 const initialResizeState: ResizeState = {
@@ -73,64 +73,67 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
   const [middleMousePressed, setMiddleMousePressedState] = useState(false);
   const [controlsEnabled, setControlsEnabled] = useState(true);
 
-  const startDraw = useCallback((uv: UVCoordinate) => {
+  const startDraw = useCallback((geo: GeoCoordinate) => {
     setDrawState({
       isDrawing: true,
-      startUV: { ...uv },
-      currentUV: { ...uv },
+      startGeo: { ...geo },
+      currentGeo: { ...geo },
     });
     setControlsEnabled(false);
   }, []);
 
-  const updateDraw = useCallback((uv: UVCoordinate) => {
+  const updateDraw = useCallback((geo: GeoCoordinate) => {
     setDrawState((prev) => {
-      if (!prev.isDrawing || !prev.startUV) return prev;
+      if (!prev.isDrawing || !prev.startGeo) return prev;
 
-      // Clamp UV coordinates
-      const clampedUV = {
-        u: Math.max(0, Math.min(1, uv.u)),
-        v: Math.max(0, Math.min(1, uv.v)),
+      // Clamp geographic coordinates
+      const clampedGeo = {
+        azimuth: Math.max(0, Math.min(360, geo.azimuth)),
+        altitude: Math.max(-90, Math.min(90, geo.altitude)),
       };
 
-      // Prevent wrapping - constrain width to max 0.5
-      let currentU = clampedUV.u;
-      const startU = prev.startUV.u;
-      const deltaU = currentU - startU;
+      // Prevent wrapping - constrain width to max degrees
+      let currentAz = clampedGeo.azimuth;
+      const startAz = prev.startGeo.azimuth;
+      const deltaAz = currentAz - startAz;
 
-      if (Math.abs(deltaU) > MAX_BOX_WIDTH) {
-        currentU = startU + Math.sign(deltaU) * MAX_BOX_WIDTH;
+      if (Math.abs(deltaAz) > MAX_BOX_WIDTH_DEG) {
+        currentAz = startAz + Math.sign(deltaAz) * MAX_BOX_WIDTH_DEG;
       }
 
       return {
         ...prev,
-        currentUV: { u: currentU, v: clampedUV.v },
+        currentGeo: { azimuth: currentAz, altitude: clampedGeo.altitude },
       };
     });
   }, []);
 
-  const finishDraw = useCallback((): { uvMin: UVCoordinate; uvMax: UVCoordinate } | null => {
-    const { startUV, currentUV } = drawState;
+  const finishDraw = useCallback((): { geoMin: GeoCoordinate; geoMax: GeoCoordinate } | null => {
+    const { startGeo, currentGeo } = drawState;
 
     setDrawState(initialDrawState);
     setControlsEnabled(true);
 
-    if (!startUV || !currentUV) return null;
+    if (!startGeo || !currentGeo) return null;
 
-    const uvMin = {
-      u: Math.min(startUV.u, currentUV.u),
-      v: Math.min(startUV.v, currentUV.v),
+    const geoMin = {
+      azimuth: Math.min(startGeo.azimuth, currentGeo.azimuth),
+      altitude: Math.min(startGeo.altitude, currentGeo.altitude),
     };
-    const uvMax = {
-      u: Math.max(startUV.u, currentUV.u),
-      v: Math.max(startUV.v, currentUV.v),
+    const geoMax = {
+      azimuth: Math.max(startGeo.azimuth, currentGeo.azimuth),
+      altitude: Math.max(startGeo.altitude, currentGeo.altitude),
     };
 
     // Check minimum size
-    if (uvMax.u - uvMin.u < MIN_BOX_SIZE || uvMax.v - uvMin.v < MIN_BOX_SIZE) {
+    if (
+      geoMax.azimuth - geoMin.azimuth < MIN_BOX_SIZE_DEG ||
+      geoMax.altitude - geoMin.altitude < MIN_BOX_SIZE_DEG
+    ) {
       return null;
     }
 
-    return { uvMin, uvMax };
+    return { geoMin, geoMax };
   }, [drawState]);
 
   const cancelDraw = useCallback(() => {
@@ -142,15 +145,15 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
     (
       boxId: string | number,
       handleType: HandleType,
-      originalBox: Pick<BoundingBox, 'uvMin' | 'uvMax'>
+      originalBox: Pick<BoundingBox, 'geoMin' | 'geoMax'>
     ) => {
       setResizeState({
         isResizing: true,
         boxId,
         handleType,
         originalBox: {
-          uvMin: { ...originalBox.uvMin },
-          uvMax: { ...originalBox.uvMax },
+          geoMin: { ...originalBox.geoMin },
+          geoMax: { ...originalBox.geoMax },
         },
       });
       setControlsEnabled(false);
@@ -160,39 +163,39 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
 
   const updateResize = useCallback(
     (
-      uv: UVCoordinate,
-      currentBox: Pick<BoundingBox, 'uvMin' | 'uvMax'>
-    ): { uvMin: UVCoordinate; uvMax: UVCoordinate } | null => {
+      geo: GeoCoordinate,
+      currentBox: Pick<BoundingBox, 'geoMin' | 'geoMax'>
+    ): { geoMin: GeoCoordinate; geoMax: GeoCoordinate } | null => {
       if (!resizeState.isResizing || !resizeState.handleType) return null;
 
-      const clampedUV = {
-        u: Math.max(0, Math.min(1, uv.u)),
-        v: Math.max(0, Math.min(1, uv.v)),
+      const clampedGeo = {
+        azimuth: Math.max(0, Math.min(360, geo.azimuth)),
+        altitude: Math.max(-90, Math.min(90, geo.altitude)),
       };
 
-      const newUvMin = { ...currentBox.uvMin };
-      const newUvMax = { ...currentBox.uvMax };
+      const newGeoMin = { ...currentBox.geoMin };
+      const newGeoMax = { ...currentBox.geoMax };
 
       switch (resizeState.handleType) {
         case 'top-left':
-          newUvMin.u = Math.min(clampedUV.u, newUvMax.u - MIN_BOX_SIZE);
-          newUvMin.v = Math.min(clampedUV.v, newUvMax.v - MIN_BOX_SIZE);
+          newGeoMin.azimuth = Math.min(clampedGeo.azimuth, newGeoMax.azimuth - MIN_BOX_SIZE_DEG);
+          newGeoMax.altitude = Math.max(clampedGeo.altitude, newGeoMin.altitude + MIN_BOX_SIZE_DEG);
           break;
         case 'top-right':
-          newUvMax.u = Math.max(clampedUV.u, newUvMin.u + MIN_BOX_SIZE);
-          newUvMin.v = Math.min(clampedUV.v, newUvMax.v - MIN_BOX_SIZE);
+          newGeoMax.azimuth = Math.max(clampedGeo.azimuth, newGeoMin.azimuth + MIN_BOX_SIZE_DEG);
+          newGeoMax.altitude = Math.max(clampedGeo.altitude, newGeoMin.altitude + MIN_BOX_SIZE_DEG);
           break;
         case 'bottom-left':
-          newUvMin.u = Math.min(clampedUV.u, newUvMax.u - MIN_BOX_SIZE);
-          newUvMax.v = Math.max(clampedUV.v, newUvMin.v + MIN_BOX_SIZE);
+          newGeoMin.azimuth = Math.min(clampedGeo.azimuth, newGeoMax.azimuth - MIN_BOX_SIZE_DEG);
+          newGeoMin.altitude = Math.min(clampedGeo.altitude, newGeoMax.altitude - MIN_BOX_SIZE_DEG);
           break;
         case 'bottom-right':
-          newUvMax.u = Math.max(clampedUV.u, newUvMin.u + MIN_BOX_SIZE);
-          newUvMax.v = Math.max(clampedUV.v, newUvMin.v + MIN_BOX_SIZE);
+          newGeoMax.azimuth = Math.max(clampedGeo.azimuth, newGeoMin.azimuth + MIN_BOX_SIZE_DEG);
+          newGeoMin.altitude = Math.min(clampedGeo.altitude, newGeoMax.altitude - MIN_BOX_SIZE_DEG);
           break;
       }
 
-      return { uvMin: newUvMin, uvMax: newUvMax };
+      return { geoMin: newGeoMin, geoMax: newGeoMax };
     },
     [resizeState.isResizing, resizeState.handleType]
   );
@@ -202,7 +205,7 @@ export function InteractionProvider({ children }: InteractionProviderProps) {
     setControlsEnabled(true);
   }, []);
 
-  const cancelResize = useCallback((): { uvMin: UVCoordinate; uvMax: UVCoordinate } | null => {
+  const cancelResize = useCallback((): { geoMin: GeoCoordinate; geoMax: GeoCoordinate } | null => {
     const original = resizeState.originalBox;
     setResizeState(initialResizeState);
     setControlsEnabled(true);

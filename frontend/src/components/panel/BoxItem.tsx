@@ -45,8 +45,8 @@ export function BoxItem({ box, isSelected, suggestions, onFocus }: BoxItemProps)
     setIsEditingLabel(false);
   };
 
-  const width = ((box.uvMax.u - box.uvMin.u) * 100).toFixed(1);
-  const height = ((box.uvMax.v - box.uvMin.v) * 100).toFixed(1);
+  const widthDeg = (box.geoMax.azimuth - box.geoMin.azimuth).toFixed(1);
+  const heightDeg = (box.geoMax.altitude - box.geoMin.altitude).toFixed(1);
 
   return (
     <div
@@ -93,10 +93,12 @@ export function BoxItem({ box, isSelected, suggestions, onFocus }: BoxItemProps)
 
       <div className="text-xs text-muted-foreground space-y-1">
         <div>
-          UV: ({box.uvMin.u.toFixed(3)}, {box.uvMin.v.toFixed(3)}) - (
-          {box.uvMax.u.toFixed(3)}, {box.uvMax.v.toFixed(3)})
+          Az: {box.geoMin.azimuth.toFixed(1)}° - {box.geoMax.azimuth.toFixed(1)}°
         </div>
-        <div>Size: {width}% x {height}%</div>
+        <div>
+          Alt: {box.geoMin.altitude.toFixed(1)}° - {box.geoMax.altitude.toFixed(1)}°
+        </div>
+        <div>Size: {widthDeg}° x {heightDeg}°</div>
       </div>
 
       <div className="flex gap-2 mt-3">

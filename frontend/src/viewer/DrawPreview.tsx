@@ -1,28 +1,28 @@
 import { useMemo, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { generateBoxPoints } from '../utils/coordinates';
-import type { UVCoordinate } from '../types';
+import type { GeoCoordinate } from '../types';
 
 interface DrawPreviewProps {
-  startUV: UVCoordinate;
-  currentUV: UVCoordinate;
+  startGeo: GeoCoordinate;
+  currentGeo: GeoCoordinate;
 }
 
-export function DrawPreview({ startUV, currentUV }: DrawPreviewProps) {
+export function DrawPreview({ startGeo, currentGeo }: DrawPreviewProps) {
   const geometryRef = useRef<THREE.BufferGeometry>(null);
 
-  const uvMin = {
-    u: Math.min(startUV.u, currentUV.u),
-    v: Math.min(startUV.v, currentUV.v),
+  const geoMin = {
+    azimuth: Math.min(startGeo.azimuth, currentGeo.azimuth),
+    altitude: Math.min(startGeo.altitude, currentGeo.altitude),
   };
-  const uvMax = {
-    u: Math.max(startUV.u, currentUV.u),
-    v: Math.max(startUV.v, currentUV.v),
+  const geoMax = {
+    azimuth: Math.max(startGeo.azimuth, currentGeo.azimuth),
+    altitude: Math.max(startGeo.altitude, currentGeo.altitude),
   };
 
   const points = useMemo(() => {
-    return generateBoxPoints(uvMin, uvMax);
-  }, [uvMin.u, uvMin.v, uvMax.u, uvMax.v]);
+    return generateBoxPoints(geoMin, geoMax);
+  }, [geoMin.azimuth, geoMin.altitude, geoMax.azimuth, geoMax.altitude]);
 
   // Update geometry when points change
   useEffect(() => {

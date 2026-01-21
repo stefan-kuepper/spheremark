@@ -5,7 +5,6 @@ from backend.config import get_config
 from backend.database import get_db
 from backend.services.annotation_service import AnnotationService
 from backend.services.image_service import ImageService
-from backend.utils.coordinates import uv_bbox_to_spherical
 
 
 class ExportService:
@@ -80,7 +79,12 @@ class ExportService:
                 "version": "1.0",
                 "year": datetime.now().year,
                 "date_created": datetime.now().isoformat(),
-                "coordinate_system": "spherical",
+                "coordinate_system": "geographic",
+                "coordinate_units": "degrees",
+                "coordinate_description": {
+                    "azimuth": "0-360 degrees, 0=north",
+                    "altitude": "-90 to 90 degrees, 0=horizon",
+                },
                 "contributor": "SphereMark",
             },
             "images": [],
@@ -116,27 +120,17 @@ class ExportService:
                     label_to_id[label] = next_category_id
                     next_category_id += 1
 
-                # Convert UV to spherical
-                spherical = uv_bbox_to_spherical(
-                    ann.uv_min_u, ann.uv_min_v, ann.uv_max_u, ann.uv_max_v
-                )
-
-                # Round values to specified precision
-                for key in spherical:
-                    spherical[key] = round(spherical[key], precision)
-
-                # Add annotation to COCO
+                # Add annotation to COCO with geographic coordinates (degrees)
                 coco_output["annotations"].append(
                     {
                         "id": annotation_id_counter,
                         "image_id": img.id,
                         "category_id": label_to_id[label],
-                        "bbox_spherical": spherical,
-                        "bbox_uv": {
-                            "u_min": round(ann.uv_min_u, precision),
-                            "v_min": round(ann.uv_min_v, precision),
-                            "u_max": round(ann.uv_max_u, precision),
-                            "v_max": round(ann.uv_max_v, precision),
+                        "bbox_geo": {
+                            "az_min": round(ann.az_min, precision),
+                            "alt_min": round(ann.alt_min, precision),
+                            "az_max": round(ann.az_max, precision),
+                            "alt_max": round(ann.alt_max, precision),
                         },
                         "color": ann.color,
                     }
@@ -156,12 +150,14 @@ class ExportService:
         self, project_id: int, image_id: Optional[int] = None
     ) -> Dict[str, Any]:
         """
-        Export annotations in YOLO format with spherical coordinates.
+        Export annotations in YOLO format with geographic coordinates.
 
         YOLO format per image:
-        <class_id> <phi_center> <theta_center> <phi_width> <theta_height>
+        <class_id> <az_center> <alt_center> <az_width> <alt_height>
 
-        All values normalized to [0, 1] range.
+        All values normalized to [0, 1] range:
+        - azimuth: normalized by dividing by 360
+        - altitude: normalized by (value + 90) / 180
 
         Args:
             project_id: Project ID to export
@@ -170,8 +166,6 @@ class ExportService:
         Returns:
             Dictionary with 'files' (image_name -> annotation lines) and 'classes' (class names)
         """
-        import math
-
         precision = self.config.export.coordinate_precision
 
         # Verify project exists
@@ -216,28 +210,23 @@ class ExportService:
 
                 class_id = label_to_id[label]
 
-                # Convert UV to spherical
-                spherical = uv_bbox_to_spherical(
-                    ann.uv_min_u, ann.uv_min_v, ann.uv_max_u, ann.uv_max_v
-                )
-
-                # Calculate center and dimensions in spherical space
-                phi_center = (spherical["phi_min"] + spherical["phi_max"]) / 2
-                theta_center = (spherical["theta_min"] + spherical["theta_max"]) / 2
-                phi_width = spherical["phi_max"] - spherical["phi_min"]
-                theta_height = spherical["theta_max"] - spherical["theta_min"]
+                # Calculate center and dimensions in geographic space
+                az_center = (ann.az_min + ann.az_max) / 2
+                alt_center = (ann.alt_min + ann.alt_max) / 2
+                az_width = ann.az_max - ann.az_min
+                alt_height = ann.alt_max - ann.alt_min
 
                 # Normalize to [0, 1] range for YOLO
-                # phi: [-π, π] → [0, 1]
-                phi_center_norm = (phi_center + math.pi) / (2 * math.pi)
-                phi_width_norm = phi_width / (2 * math.pi)
+                # azimuth: [0, 360] → [0, 1]
+                az_center_norm = az_center / 360.0
+                az_width_norm = az_width / 360.0
 
-                # theta: [0, π] → [0, 1]
-                theta_center_norm = theta_center / math.pi
-                theta_height_norm = theta_height / math.pi
+                # altitude: [-90, 90] → [0, 1]
+                alt_center_norm = (alt_center + 90.0) / 180.0
+                alt_height_norm = alt_height / 180.0
 
                 # Format YOLO line
-                line = f"{class_id} {phi_center_norm:.{precision}f} {theta_center_norm:.{precision}f} {phi_width_norm:.{precision}f} {theta_height_norm:.{precision}f}"
+                line = f"{class_id} {az_center_norm:.{precision}f} {alt_center_norm:.{precision}f} {az_width_norm:.{precision}f} {alt_height_norm:.{precision}f}"
                 lines.append(line)
 
             # Store lines for this image

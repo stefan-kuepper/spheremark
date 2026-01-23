@@ -28,10 +28,10 @@ async def create_annotation(image_id: int, annotation_req: AnnotationCreateReque
     annotation = AnnotationCreate(
         image_id=image_id,
         label=annotation_req.label,
-        uv_min_u=annotation_req.uv_min_u,
-        uv_min_v=annotation_req.uv_min_v,
-        uv_max_u=annotation_req.uv_max_u,
-        uv_max_v=annotation_req.uv_max_v,
+        az_min=annotation_req.az_min,
+        alt_min=annotation_req.alt_min,
+        az_max=annotation_req.az_max,
+        alt_max=annotation_req.alt_max,
         color=annotation_req.color,
     )
 

@@ -48,10 +48,10 @@ def test_real_migration_creates_correct_schema():
                 "id": "INTEGER",
                 "image_id": "INTEGER",
                 "label": "TEXT",
-                "uv_min_u": "REAL",
-                "uv_min_v": "REAL",
-                "uv_max_u": "REAL",
-                "uv_max_v": "REAL",
+                "az_min": "REAL",
+                "alt_min": "REAL",
+                "az_max": "REAL",
+                "alt_max": "REAL",
                 "color": "TEXT",
                 "created_at": "TIMESTAMP",
                 "updated_at": "TIMESTAMP",
@@ -109,13 +109,13 @@ def test_migration_can_insert_and_query_data():
             )
             image_id = cursor.lastrowid
 
-            # Insert test annotation
+            # Insert test annotation (using geographic coordinates)
             cursor.execute(
                 """
-                INSERT INTO annotations (image_id, label, uv_min_u, uv_min_v, uv_max_u, uv_max_v, color)
+                INSERT INTO annotations (image_id, label, az_min, alt_min, az_max, alt_max, color)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-                (image_id, "test_label", 0.1, 0.2, 0.3, 0.4, "#FF0000"),
+                (image_id, "test_label", 36.0, 18.0, 108.0, 54.0, "#FF0000"),
             )
             annotation_id = cursor.lastrowid
 
@@ -135,10 +135,10 @@ def test_migration_can_insert_and_query_data():
             assert annotation_row is not None
             assert annotation_row["image_id"] == image_id
             assert annotation_row["label"] == "test_label"
-            assert annotation_row["uv_min_u"] == 0.1
-            assert annotation_row["uv_min_v"] == 0.2
-            assert annotation_row["uv_max_u"] == 0.3
-            assert annotation_row["uv_max_v"] == 0.4
+            assert annotation_row["az_min"] == 36.0
+            assert annotation_row["alt_min"] == 18.0
+            assert annotation_row["az_max"] == 108.0
+            assert annotation_row["alt_max"] == 54.0
             assert annotation_row["color"] == "#FF0000"
 
             # Enable foreign keys (SQLite requires this)

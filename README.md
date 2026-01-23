@@ -7,7 +7,7 @@ A web-based tool for annotating panoramic images with spherical bounding boxes. 
 - Load panoramic images from remote LAN storage
 - Create 3D bounding boxes on equirectangular panoramas
 - Store annotations with UV coordinates
-- Export annotations in COCO and YOLO formats with spherical coordinates
+- Export annotations in COCO format with spherical coordinates
 - Single-user LAN deployment
 
 ## Setup
@@ -100,10 +100,6 @@ The built files will be in `frontend/dist/`
 
 - `GET /api/export/coco` - Export all annotations in COCO format
 - `GET /api/export/coco/{image_id}` - Export single image in COCO format
-- `GET /api/export/yolo` - Export all annotations in YOLO format
-- `GET /api/export/yolo/{image_id}` - Export single image in YOLO format
-- `GET /api/export/yolo/{image_id}/txt` - Download YOLO .txt file
-- `GET /api/export/yolo/classes.txt` - Download YOLO classes.txt
 
 ### Health
 
@@ -160,12 +156,7 @@ curl http://localhost:8000/api/images/1/annotations
 curl http://localhost:8000/api/export/coco -o annotations.json
 ```
 
-4. Export to YOLO format:
-```bash
-curl http://localhost:8000/api/export/yolo
-```
-
-5. Test coordinate conversions:
+4. Test coordinate conversions:
 ```bash
 uv run python test_coordinates.py
 ```
@@ -224,7 +215,7 @@ spheremark/
 │   ├── services/
 │   │   ├── image_service.py          # Image operations
 │   │   ├── annotation_service.py     # Annotation CRUD (Phase 2)
-│   │   └── export_service.py         # COCO/YOLO export (Phase 2)
+│   │   └── export_service.py         # COCO export (Phase 2)
 │   ├── routes/
 │   │   ├── images.py                 # Image endpoints
 │   │   ├── annotations.py            # Annotation endpoints (Phase 2)
@@ -328,7 +319,7 @@ spheremark/
 ### Spherical Coordinates (Export)
 - **Phi (φ)**: Longitude, [-π, π] radians
 - **Theta (θ)**: Latitude, [0, π] radians
-- Used for COCO/YOLO export (Phase 2+)
+- Used for COCO export (Phase 2+)
 
 ## Configuration
 

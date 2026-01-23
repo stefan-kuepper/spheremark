@@ -19,15 +19,13 @@ interface ExportDialogProps {
   onClose: () => void;
 }
 
-type ExportFormat = 'coco' | 'yolo';
 type ExportScope = 'current' | 'all';
 
 export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
   const { currentImageId } = useImages();
   const { currentProjectId } = useProjects();
-  const [format, setFormat] = useState<ExportFormat>('coco');
   const [scope, setScope] = useState<ExportScope>('current');
-  const [preview, setPreview] = useState<string>('Select options to see preview...');
+  const [preview, setPreview] = useState<string>('Loading preview...');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -36,18 +34,10 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
     const loadPreview = async () => {
       setIsLoading(true);
       try {
-        let data;
-        if (format === 'coco') {
-          data =
-            scope === 'current' && currentImageId
-              ? await exportsApi.exportCocoImage(currentProjectId, currentImageId)
-              : await exportsApi.exportCoco(currentProjectId);
-        } else {
-          data =
-            scope === 'current' && currentImageId
-              ? await exportsApi.exportYoloImage(currentProjectId, currentImageId)
-              : await exportsApi.exportYolo(currentProjectId);
-        }
+        const data =
+          scope === 'current' && currentImageId
+            ? await exportsApi.exportCocoImage(currentProjectId, currentImageId)
+            : await exportsApi.exportCoco(currentProjectId);
         setPreview(JSON.stringify(data, null, 2));
       } catch (error) {
         setPreview(`Error loading preview: ${error}`);
@@ -57,14 +47,14 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
     };
 
     loadPreview();
-  }, [isOpen, format, scope, currentImageId, currentProjectId]);
+  }, [isOpen, scope, currentImageId, currentProjectId]);
 
   const handleDownload = () => {
     const blob = new Blob([preview], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `annotations_${format}_${scope === 'current' ? currentImageId : 'all'}.json`;
+    a.download = `annotations_coco_${scope === 'current' ? currentImageId : 'all'}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -88,29 +78,11 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent onClose={onClose} className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Export Annotations</DialogTitle>
+          <DialogTitle>Export Annotations (COCO Format)</DialogTitle>
         </DialogHeader>
 
         <DialogBody>
           <div className="space-y-6">
-            <div className="space-y-3">
-              <Label>Export Format</Label>
-              <RadioGroup value={format} onValueChange={(v) => setFormat(v as ExportFormat)}>
-                <RadioGroupItem value="coco">
-                  <span className="font-medium">COCO Format (JSON)</span>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Standard COCO format with spherical coordinates
-                  </p>
-                </RadioGroupItem>
-                <RadioGroupItem value="yolo">
-                  <span className="font-medium">YOLO Format (TXT)</span>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    YOLO format with spherical coordinates, one .txt file per image
-                  </p>
-                </RadioGroupItem>
-              </RadioGroup>
-            </div>
-
             <div className="space-y-3">
               <Label>Scope</Label>
               <RadioGroup value={scope} onValueChange={(v) => setScope(v as ExportScope)}>

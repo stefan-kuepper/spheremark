@@ -95,8 +95,4 @@ export const projects = {
   getCocoExportUrl(projectId: number): string {
     return getApiUrl(`/api/projects/${projectId}/export/coco`);
   },
-
-  getYoloExportUrl(projectId: number): string {
-    return getApiUrl(`/api/projects/${projectId}/export/yolo`);
-  },
 };

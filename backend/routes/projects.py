@@ -302,30 +302,3 @@ async def export_project_image_coco(project_id: int, image_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/{project_id}/export/yolo")
-async def export_project_yolo(project_id: int):
-    """Export all project annotations in YOLO format."""
-    project_service = ProjectService()
-
-    if not project_service.get_project(project_id):
-        raise HTTPException(status_code=404, detail="Project not found")
-
-    export_service = ExportService()
-    try:
-        yolo_data = export_service.export_yolo(project_id)
-        return JSONResponse(content=yolo_data)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/{project_id}/export/yolo/{image_id}")
-async def export_project_image_yolo(project_id: int, image_id: int):
-    """Export annotations for a specific image in YOLO format."""
-    export_service = ExportService()
-    try:
-        yolo_data = export_service.export_yolo(project_id, image_id=image_id)
-        return JSONResponse(content=yolo_data)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))

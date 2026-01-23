@@ -1,6 +1,6 @@
-import { apiFetch, getApiUrl } from './client';
+import { apiFetch } from './client';
 
-// COCO and YOLO export response types
+// COCO export response type
 export interface CocoExport {
   images: Array<{
     id: number;
@@ -25,15 +25,6 @@ export interface CocoExport {
   }>;
 }
 
-export interface YoloExport {
-  images: Array<{
-    image_id: number;
-    filename: string;
-    annotations: string[];
-  }>;
-  classes: string[];
-}
-
 export const exports = {
   async exportCoco(projectId: number): Promise<CocoExport> {
     return apiFetch<CocoExport>(`/api/projects/${projectId}/export/coco`);
@@ -41,21 +32,5 @@ export const exports = {
 
   async exportCocoImage(projectId: number, imageId: number): Promise<CocoExport> {
     return apiFetch<CocoExport>(`/api/projects/${projectId}/export/coco/${imageId}`);
-  },
-
-  async exportYolo(projectId: number): Promise<YoloExport> {
-    return apiFetch<YoloExport>(`/api/projects/${projectId}/export/yolo`);
-  },
-
-  async exportYoloImage(projectId: number, imageId: number): Promise<YoloExport> {
-    return apiFetch<YoloExport>(`/api/projects/${projectId}/export/yolo/${imageId}`);
-  },
-
-  getYoloTxtUrl(projectId: number, imageId: number): string {
-    return getApiUrl(`/api/projects/${projectId}/export/yolo/${imageId}/txt`);
-  },
-
-  getYoloClassesUrl(projectId: number): string {
-    return getApiUrl(`/api/projects/${projectId}/export/yolo/classes.txt`);
   },
 };

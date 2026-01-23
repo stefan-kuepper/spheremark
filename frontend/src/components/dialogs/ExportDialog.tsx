@@ -98,7 +98,7 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
             <div className="space-y-3">
               <Label>Preview</Label>
               <ScrollArea className="h-[200px] rounded-md border border-border bg-muted/50 p-4">
-                <pre className="text-xs font-mono whitespace-pre-wrap break-words">
+                <pre className="text-xs font-mono whitespace-pre-wrap break-words text-card-foreground">
                   {isLoading ? 'Loading...' : preview}
                 </pre>
               </ScrollArea>

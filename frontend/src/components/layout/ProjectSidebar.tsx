@@ -289,7 +289,7 @@ export function ProjectSidebar({ onExportClick }: ProjectSidebarProps) {
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: label.color || '#888' }}
                   />
-                  <span className="text-sm">{label.label_name}</span>
+                  <span className="text-sm text-card-foreground">{label.label_name}</span>
                 </div>
                 <Button
                   variant="ghost"
@@ -368,7 +368,7 @@ export function ProjectSidebar({ onExportClick }: ProjectSidebarProps) {
               ) : (
                 <button
                   onClick={() => setEditingName(true)}
-                  className="text-sm text-left w-full p-2 rounded bg-muted/50 hover:bg-muted"
+                  className="text-sm text-left w-full p-2 rounded bg-muted/50 hover:bg-muted text-card-foreground"
                 >
                   {currentProject?.name || '-'}
                 </button>
@@ -398,7 +398,7 @@ export function ProjectSidebar({ onExportClick }: ProjectSidebarProps) {
               ) : (
                 <button
                   onClick={() => setEditingDescription(true)}
-                  className="text-sm text-left w-full p-2 rounded bg-muted/50 hover:bg-muted min-h-[40px]"
+                  className="text-sm text-left w-full p-2 rounded bg-muted/50 hover:bg-muted min-h-[40px] text-card-foreground"
                 >
                   {currentProject?.description || 'No description'}
                 </button>

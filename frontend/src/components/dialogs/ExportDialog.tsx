@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useImages } from '../../hooks';
+import { useImages, useProjects } from '../../hooks';
 import { exports as exportsApi } from '../../api';
 import {
   Dialog,
@@ -24,13 +24,14 @@ type ExportScope = 'current' | 'all';
 
 export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
   const { currentImageId } = useImages();
+  const { currentProjectId } = useProjects();
   const [format, setFormat] = useState<ExportFormat>('coco');
   const [scope, setScope] = useState<ExportScope>('current');
   const [preview, setPreview] = useState<string>('Select options to see preview...');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !currentProjectId) return;
 
     const loadPreview = async () => {
       setIsLoading(true);
@@ -39,13 +40,13 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
         if (format === 'coco') {
           data =
             scope === 'current' && currentImageId
-              ? await exportsApi.exportCocoImage(currentImageId)
-              : await exportsApi.exportCoco();
+              ? await exportsApi.exportCocoImage(currentProjectId, currentImageId)
+              : await exportsApi.exportCoco(currentProjectId);
         } else {
           data =
             scope === 'current' && currentImageId
-              ? await exportsApi.exportYoloImage(currentImageId)
-              : await exportsApi.exportYolo();
+              ? await exportsApi.exportYoloImage(currentProjectId, currentImageId)
+              : await exportsApi.exportYolo(currentProjectId);
         }
         setPreview(JSON.stringify(data, null, 2));
       } catch (error) {
@@ -56,7 +57,7 @@ export function ExportDialog({ isOpen, onClose }: ExportDialogProps) {
     };
 
     loadPreview();
-  }, [isOpen, format, scope, currentImageId]);
+  }, [isOpen, format, scope, currentImageId, currentProjectId]);
 
   const handleDownload = () => {
     const blob = new Blob([preview], { type: 'application/json' });

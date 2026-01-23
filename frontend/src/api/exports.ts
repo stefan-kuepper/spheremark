@@ -35,27 +35,27 @@ export interface YoloExport {
 }
 
 export const exports = {
-  async exportCoco(): Promise<CocoExport> {
-    return apiFetch<CocoExport>('/api/export/coco');
+  async exportCoco(projectId: number): Promise<CocoExport> {
+    return apiFetch<CocoExport>(`/api/projects/${projectId}/export/coco`);
   },
 
-  async exportCocoImage(imageId: number): Promise<CocoExport> {
-    return apiFetch<CocoExport>(`/api/export/coco/${imageId}`);
+  async exportCocoImage(projectId: number, imageId: number): Promise<CocoExport> {
+    return apiFetch<CocoExport>(`/api/projects/${projectId}/export/coco/${imageId}`);
   },
 
-  async exportYolo(): Promise<YoloExport> {
-    return apiFetch<YoloExport>('/api/export/yolo');
+  async exportYolo(projectId: number): Promise<YoloExport> {
+    return apiFetch<YoloExport>(`/api/projects/${projectId}/export/yolo`);
   },
 
-  async exportYoloImage(imageId: number): Promise<YoloExport> {
-    return apiFetch<YoloExport>(`/api/export/yolo/${imageId}`);
+  async exportYoloImage(projectId: number, imageId: number): Promise<YoloExport> {
+    return apiFetch<YoloExport>(`/api/projects/${projectId}/export/yolo/${imageId}`);
   },
 
-  getYoloTxtUrl(imageId: number): string {
-    return getApiUrl(`/api/export/yolo/${imageId}/txt`);
+  getYoloTxtUrl(projectId: number, imageId: number): string {
+    return getApiUrl(`/api/projects/${projectId}/export/yolo/${imageId}/txt`);
   },
 
-  getYoloClassesUrl(): string {
-    return getApiUrl('/api/export/yolo/classes.txt');
+  getYoloClassesUrl(projectId: number): string {
+    return getApiUrl(`/api/projects/${projectId}/export/yolo/classes.txt`);
   },
 };

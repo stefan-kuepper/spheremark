@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useImages, useProjects } from '../../hooks';
 import { PanoramaViewer } from './PanoramaViewer';
+import { saveLastImageId } from './ProjectViewer';
 
 export function ImageViewer() {
   const { projectId, imageId: imageIdParam } = useParams<{
@@ -26,6 +27,13 @@ export function ImageViewer() {
       selectImage(imageId);
     }
   }, [imageId, imageExists, selectImage]);
+
+  // Save last viewed image for this project
+  useEffect(() => {
+    if (projectIdNum !== null && imageId !== null && imageExists) {
+      saveLastImageId(projectIdNum, imageId);
+    }
+  }, [projectIdNum, imageId, imageExists]);
 
   if (isLoading) {
     return (
